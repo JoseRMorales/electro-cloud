@@ -3,12 +3,15 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "dev:backend": "turbo run dev --filter=backend",
+    "dev:webapp": "turbo run dev --filter=webapp",
+    "dev:test" : "turbo run dev --filter=test",
+    "dev:main": "turbo run dev --filter=backend --filter=webapp",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\""
   },
   "devDependencies": {
     "eslint": "^8.48.0",
-    "prettier": "^3.0.3",
     "standard": "^17.1.0",
     "tsconfig": "workspace:*",
     "turbo": "latest"

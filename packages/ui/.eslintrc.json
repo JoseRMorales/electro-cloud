@@ -1,0 +1,10 @@
+{
+  "extends": ["standard", "plugin:@typescript-eslint/recommended"],
+  "overrides": [
+    {
+      "files": [
+        "*.js", "*.jsx", "*.ts", "*.tsx"
+      ]
+    }
+  ]
+}
