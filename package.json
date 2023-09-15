@@ -7,8 +7,7 @@
     "dev:webapp": "turbo run dev --filter=webapp",
     "dev:test" : "turbo run dev --filter=test",
     "dev:main": "turbo run dev --filter=backend --filter=webapp",
-    "lint": "turbo run lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\""
+    "lint": "turbo run lint"
   },
   "devDependencies": {
     "eslint": "^8.48.0",
