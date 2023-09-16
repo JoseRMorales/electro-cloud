@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt && uvicorn API.main:app --reload"
+    "dev": "python3 -m venv venv && . venv/bin/activate && pip install -r requirements.txt && uvicorn API.main:app --reload --port 8001"
   },
   "keywords": [],
   "author": "",

@@ -2,11 +2,14 @@ from fastapi import FastAPI, File, Form, UploadFile, HTTPException, Response
 
 # from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-import Tools.SolarAnalysisLib as sa
+import tools.energy_analysis_lib.core as core
 from typing import Annotated
 import logging
 from io import StringIO, BytesIO
 import zipfile
+
+from .solar_router import router as solar_router
+from .energy_router import router as energy_router
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -21,6 +24,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(solar_router, prefix="/api/solar", tags=["solar"])
+app.include_router(energy_router, prefix="/api/energy", tags=["energy"])
 
 
 @app.get("/")
@@ -63,7 +69,7 @@ async def process(
     consumption_file = StringIO(consumption_file.decode("utf-8"))
 
     try:
-        analysisId = sa.solar_calculation(
+        analysisId = core.solar_calculation(
             consumption_file, location, peakpower, mountingplace, loss, angle, aspect
         )
     except Exception as e:
@@ -87,7 +93,7 @@ def monthly_production(analysisId: str):
     logger.info("Processing request")
 
     try:
-        production = sa.get_monthly_production(analysisId)
+        production = core.get_monthly_production(analysisId)
     except Exception as e:
         logger.error(e)
         # Return 500 error
@@ -111,7 +117,7 @@ def monthly_consumption(analysisId: str):
     logger.info("Processing request")
 
     try:
-        consumption = sa.get_monthly_consumption(analysisId)
+        consumption = core.get_monthly_consumption(analysisId)
     except Exception as e:
         logger.error(e)
         # Return 500 error
@@ -135,7 +141,7 @@ def monthly_consumption_production_plot(analysisId: str):
     logger.info("Processing request")
 
     try:
-        plot = sa.get_monthly_consumption_production_plot(analysisId)
+        plot = core.get_monthly_consumption_production_plot(analysisId)
     except Exception as e:
         logger.error(e)
         # Return 500 error
@@ -161,7 +167,7 @@ def results_monthly_plots(analysisId: str):
     logger = logging.getLogger(__name__)
 
     try:
-        plots = sa.get_results_monthly_plots(analysisId)
+        plots = core.get_results_monthly_plots(analysisId)
     except Exception as e:
         logger.error(e)
         # Return 500 error
@@ -198,7 +204,7 @@ def self_percent_ratios(analysisId: str):
     logger.info("Processing request")
 
     try:
-        ratios = sa.get_self_percent_ratios(analysisId)
+        ratios = core.get_self_percent_ratios(analysisId)
     except Exception as e:
         logger.error(e)
         # Return 500 error
@@ -206,33 +212,6 @@ def self_percent_ratios(analysisId: str):
 
     logger.info("Request processed")
     return ratios
-
-
-@app.get("/api/results_time_slot_consumption/{analysisId}")
-def results_time_slot_consumption(analysisId: str):
-    """
-    Get the time slot consumption of the analysisId
-
-    :param analysisId: id of the analysis
-    :return: time slot consumption in csv format
-    """
-    logger = logging.getLogger(__name__)
-    logger.info("Processing request")
-
-    try:
-        consumption = sa.get_results_time_slot_consumption(analysisId)
-    except Exception as e:
-        logger.error(e)
-        # Return 500 error
-        raise HTTPException(status_code=500, detail=str(e))
-
-    headers = {
-        "Content-Disposition": 'attachment; \
-        filename="results_time_slot_consumption.csv"'
-    }
-
-    logger.info("Request processed")
-    return Response(content=consumption, media_type="text/csv", headers=headers)
 
 
 @app.get("/api/results_time_slot_solar/{analysisId}")
@@ -247,7 +226,7 @@ def results_time_slot_solar(analysisId: str):
     logger.info("Processing request")
 
     try:
-        solar = sa.get_results_time_slot_solar(analysisId)
+        solar = core.get_results_time_slot_solar(analysisId)
     except Exception as e:
         logger.error(e)
         # Return 500 error
@@ -259,3 +238,29 @@ def results_time_slot_solar(analysisId: str):
 
     logger.info("Request processed")
     return Response(content=solar, media_type="text/csv", headers=headers)
+
+
+@app.get("/api/results_time_slot_energy/{analysisId}")
+def results_time_slot_energy(analysisId: str):
+    """
+    Get the time slot energy of the analysisId
+
+    :param analysisId: id of the analysis
+    :return: time slot energy in csv format
+    """
+    logger = logging.getLogger(__name__)
+    logger.info("Processing request")
+
+    try:
+        energy = core.get_results_time_slot_energy(analysisId)
+    except Exception as e:
+        logger.error(e)
+        # Return 500 error
+        raise HTTPException(status_code=500, detail=str(e))
+
+    headers = {
+        "Content-Disposition": 'attachment; filename="results_time_slot_energy.csv"'
+    }
+
+    logger.info("Request processed")
+    return Response(content=energy, media_type="text/csv", headers=headers)
