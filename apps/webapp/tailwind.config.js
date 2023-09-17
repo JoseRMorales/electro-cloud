@@ -6,6 +6,10 @@ module.exports = {
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
+    './node_modules/flowbite-react/**/*.js',
+    './node_modules/flowbite/**/*.js', 
+    './pages/**/*.{ts,tsx}',
+    './public/**/*.html'
 	],
   theme: {
     container: {
@@ -32,5 +36,5 @@ module.exports = {
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [require("tailwindcss-animate"), require('flowbite/plugin')],
 }

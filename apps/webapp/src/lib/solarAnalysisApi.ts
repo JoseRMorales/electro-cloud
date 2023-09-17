@@ -1,4 +1,4 @@
-import { type HelloApiResponse } from './solarAnalysisApi.d'
+import { HelloSolarResponse, type HelloApiResponse } from './solarAnalysisApi.d'
 
 class SolarAnalysisApi {
   private url: string
@@ -10,6 +10,13 @@ class SolarAnalysisApi {
   async getHelloApi (): Promise<string> {
     const res = await fetch(`${this.url}/`)
     const data = await res.json() as HelloApiResponse
+    const { message } = data
+    return message
+  }
+
+  async getHelloSolar (): Promise<string> {
+    const res = await fetch(`${this.url}/solar/`)
+    const data = await res.json() as HelloSolarResponse
     const { message } = data
     return message
   }
