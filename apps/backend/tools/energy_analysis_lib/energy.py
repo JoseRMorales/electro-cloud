@@ -2,7 +2,8 @@ import pandas as pd
 import datetime
 from .constants import PATHS, TIME_SLOTS
 from .utils import is_within_time_slot
-from tools.utils import logger
+from tools.utils import logger  #
+import os
 
 
 def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
@@ -58,6 +59,9 @@ def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
 
     # Remove hour 25 corresponding to the change to winter time
     df = df[df["Hour"] != 25]
+
+    # Create directory if it does not exist at path PATHS["consumption"]
+    os.makedirs(PATHS["consumption"], exist_ok=True)
 
     # Save the dataframe as a csv file
     df_monthly.to_csv(
@@ -164,6 +168,9 @@ def process_results_time_slot_energy(analysisId: str) -> None:
             "16h_No promocionadas",
         ]
     )
+
+    # Create directory if it does not exist at path PATHS["output"]
+    os.makedirs(PATHS["output"], exist_ok=True)
 
     # Save the results
     df.to_csv(
