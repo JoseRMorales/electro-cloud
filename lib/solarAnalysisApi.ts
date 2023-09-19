@@ -1,7 +1,7 @@
-import { HelloSolarResponse, type HelloApiResponse } from './solarAnalysisApi.d'
+import { type HelloApiResponse, type HelloSolarResponse } from './solarAnalysisApi.d'
 
 class SolarAnalysisApi {
-  private url: string
+  private readonly url: string
 
   constructor () {
     this.url = process.env.SOLAR_ANALYSIS_API_URL ?? (() => { throw new Error('SOLAR_ANALYSIS_API_URL is not defined') })()

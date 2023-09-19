@@ -10,8 +10,6 @@
     "lint": "turbo run lint"
   },
   "devDependencies": {
-    "eslint": "^8.48.0",
-    "standard": "^17.1.0",
     "tsconfig": "workspace:*",
     "turbo": "latest"
   },

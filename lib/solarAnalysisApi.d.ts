@@ -1,7 +1,7 @@
 export interface HelloApiResponse {
-  message: string;
+  message: string
 }
 
 export interface HelloSolarResponse {
-  message: string;
+  message: string
 }
