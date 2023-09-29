@@ -5,3 +5,7 @@ export interface HelloApiResponse {
 export interface HelloSolarResponse {
   message: string
 }
+
+export interface EnergyProcessFileResponse {
+  message: string
+}

@@ -22,6 +22,7 @@
     "simple-import-sort/exports": "error"
   },
   "globals": {
-    "React": true
+    "React": true,
+    "JSX": true
   }
 }
