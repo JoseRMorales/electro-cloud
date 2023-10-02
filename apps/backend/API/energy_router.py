@@ -13,7 +13,33 @@ def root():
     return {"message": "Hello Energy"}
 
 
-@router.post("/process-file")
+@router.get("/time-slots/{analysisId}")
+def get_results_time_slot_energy_by_id(analysisId: str) -> bytes:
+    """
+    Return the time slot energy results to the api.
+
+    :param analysisId: The id of the analysis
+    """
+    logger.info("GET /api/energy/consumption-time-slot")
+    try:
+        time_slot_energy_results = core.get_results_time_slot_energy_by_id(analysisId)
+    # TODO: Better exception handling
+    except Exception as e:
+        logger.error(e)
+        logger.error("The time slot energy results do not exist")
+        raise FileNotFoundError("The time slot energy results do not exist")
+
+    headers = {
+        "Content-Disposition": 'attachment; filename="results_time_slot_energy.csv"'
+    }
+
+    logger.info("Request processed")
+    return Response(
+        content=time_slot_energy_results, headers=headers, media_type="text/csv"
+    )
+
+
+@router.post("/time-slots")
 async def process(consumption_file: Annotated[UploadFile, File()]):
     """
     Process the consumption file. If some exception is raised,
@@ -37,8 +63,8 @@ async def process(consumption_file: Annotated[UploadFile, File()]):
     return {"analysisId": analysisId}
 
 
-@router.get("/energy-time-slot/{analysisId}")
-def get_results_time_slot_energy(analysisId: str) -> bytes:
+@router.get("/time-slots/")
+def get_results_time_slot_energy() -> bytes:
     """
     Return the time slot energy results to the api.
 
@@ -46,7 +72,7 @@ def get_results_time_slot_energy(analysisId: str) -> bytes:
     """
     logger.info("GET /api/energy/consumption-time-slot")
     try:
-        time_slot_energy_results = core.get_results_time_slot_energy(analysisId)
+        time_slot_energy_results = core.get_results_time_slot_energy_by_id(analysisId)
     # TODO: Better exception handling
     except Exception as e:
         logger.error(e)

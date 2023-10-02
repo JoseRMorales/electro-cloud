@@ -1,4 +1,6 @@
 import datetime
+import io
+import pandas as pd
 
 
 def is_within_time_slot(
@@ -34,3 +36,25 @@ def is_within_time_slot(
                 return True
 
     return False
+
+
+def save_csv_to_variable(df: pd.DataFrame) -> io.BytesIO:
+    """
+    Save the CSV data to a variable.
+
+    :param df: The monthly consumption data
+    :return: The CSV data as a string
+    """
+    csv_buffer = io.StringIO()
+    df.to_csv(
+        csv_buffer,
+        index=False,
+        sep=";",
+        decimal=",",
+        encoding="UTF-8",
+    )
+    csv_buffer.seek(0)
+
+    csv_bytes = csv_buffer.getvalue().encode("utf-8")
+
+    return csv_bytes

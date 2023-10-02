@@ -1,6 +1,7 @@
 # import tools.energy_analysis_lib as sa
 # import tools.api_wrapper as api
-import tools.energy_analysis_lib.energy as energy
+import tools.energy_analysis_lib.core as core
+import uuid
 
 # sa.parse_consumption_file(csv_file=consumption_file_path, analysisId="1")
 
@@ -39,6 +40,15 @@ import tools.energy_analysis_lib.energy as energy
 
 # print(PATHS.consumption)
 
-energy.process_results_time_slot_energy(
-    analysisId="be6daaf1-559c-4ea8-8578-c0eec92b7541"
-)
+analysisId = uuid.uuid3(uuid.NAMESPACE_DNS, "1")
+# To string
+analysisId = str(analysisId)
+
+
+def main():
+    with open("tools/data/consumos.csv", "rb") as f:
+        core.parse_consumption_file(f, analysisId)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,4 +1,6 @@
 import uuid
+import os
+import re
 import tools.pvgis_api_wrapper as api
 from tools.utils import logger
 from tools.energy_analysis_lib.energy import parse_consumption_file
@@ -203,7 +205,7 @@ def process_consumption_file(consumption_file: bytes) -> str:
     return analysisId
 
 
-def get_results_time_slot_energy(analysisId: str) -> bytes:
+def get_results_time_slot_energy_by_id(analysisId: str) -> bytes:
     """
     Return the time slot energy results to the api.
 
@@ -223,3 +225,27 @@ def get_results_time_slot_energy(analysisId: str) -> bytes:
         raise FileNotFoundError("The time slot energy results do not exist")
 
     return results_time_slot_energy.read()
+
+
+def get_results_time_slot_energy() -> list:
+    """
+    Return all the analysisId
+    """
+    # In the output folder read all the files and extract the analysisId
+    try:
+        files = os.listdir(PATHS["output"])
+        uuids = []
+
+        for file in files:
+            if file.startswith("results_time_slot_consumption_"):
+                # Extract the UUID from the file name using a regular expression
+                uuid = re.search(
+                    r"(?<=results_time_slot_consumption_)[\w-]+", file
+                ).group(0)
+                uuids.append(uuid)
+
+        return uuids
+    except Exception as e:
+        logger.error(e)
+        logger.error("Error getting the time slot energy results")
+        raise e
