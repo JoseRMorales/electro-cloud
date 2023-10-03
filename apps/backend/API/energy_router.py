@@ -4,7 +4,6 @@ from typing import Annotated
 from tools.utils import logger
 from tools.energy_analysis_lib import core
 from io import StringIO
-import json
 
 router = APIRouter()
 
@@ -38,6 +37,18 @@ def get_results_time_slot_energy_by_id(analysisId: str) -> bytes:
     return Response(
         content=time_slot_energy_results, headers=headers, media_type="text/csv"
     )
+
+
+@router.delete("/time-slots/{analysisId}")
+def delete_results_time_slot_energy_by_id(analysisId: str):
+    """
+    Delete the time slots analysis.
+
+    :param analysisId: The id of the analysis
+    """
+    logger.info("DELETE /api/energy/time-slots")
+    message = core.delete_results_time_slot_energy_by_id(analysisId)
+    return {"message": message}
 
 
 @router.post("/time-slots")

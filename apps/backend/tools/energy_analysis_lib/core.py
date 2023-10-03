@@ -1,6 +1,4 @@
 import uuid
-import os
-import re
 import tools.pvgis_api_wrapper as api
 from tools.utils import logger
 from tools.energy_analysis_lib.energy import parse_consumption_file
@@ -246,3 +244,37 @@ def get_results_time_slot_energy() -> list:
     res = res.data
 
     return res
+
+
+def delete_results_time_slot_energy_by_id(analysisId: str):
+    """
+    Delete the time slots analysis.
+
+    :param analysisId: The id of the analysis
+    """
+    # Check if the results exist in supabase
+    supabase = get_supabase_client()
+    res = (
+        supabase.table(SUPABASE_TABLES["energy_analysis"])
+        .select("*")
+        .filter("analysisId", "eq", analysisId)
+        .execute()
+    )
+    # If the analysis does not exist, return message
+    if res.data == []:
+        message = "The analysis does not exist"
+        return message
+
+    supabase.table(SUPABASE_TABLES["energy_analysis"]).delete().filter(
+        "analysisId", "eq", analysisId
+    ).execute()
+
+    # Delete the results from supabase storage
+    path = SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
+    supabase.storage.from_(
+        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
+    ).remove(path + f"{analysisId}.csv")
+
+    message = "The analysis was deleted"
+
+    return message
