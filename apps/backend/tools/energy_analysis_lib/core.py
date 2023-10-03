@@ -239,7 +239,8 @@ def get_results_time_slot_energy() -> list:
     supabase = get_supabase_client()
     res = (
         supabase.table(SUPABASE_TABLES["energy_analysis"])
-        .select("analysisId")
+        .select("*")
+        .filter("analysis_time_slots", "eq", True)
         .execute()
     )
     res = res.data

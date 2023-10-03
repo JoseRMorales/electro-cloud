@@ -1,4 +1,4 @@
-import { type EnergyProcessFileResponse, type HelloApiResponse, type HelloSolarResponse } from './responses'
+import { type EnergyProcessFileResponse, type GetAllResultsTimeSlotsResponse, type HelloApiResponse, type HelloSolarResponse } from './responses'
 
 class SolarAnalysisApi {
   private readonly url: string
@@ -23,7 +23,7 @@ class SolarAnalysisApi {
 
   async postEnergyFile (formData: FormData): Promise<string> {
     // Extract the file from the FormData object
-    const res = await fetch(`${this.url}/energy/process-file`, {
+    const res = await fetch(`${this.url}/energy/time-slots`, {
       method: 'POST',
       body: formData
     })
@@ -34,8 +34,14 @@ class SolarAnalysisApi {
 
   async getEnergyByTimeSlot (analysisId: string): Promise<string> {
     console.log('analysisId', analysisId)
-    const res = await fetch(`${this.url}/energy/energy-time-slot/${analysisId}`)
+    const res = await fetch(`${this.url}/energy/time-slots/${analysisId}`)
     const data = await res.text()
+    return data
+  }
+
+  async getAllResultsTimeSlots (): Promise<GetAllResultsTimeSlotsResponse> {
+    const res = await fetch(`${this.url}/energy/time-slots`)
+    const data = await res.json() as GetAllResultsTimeSlotsResponse
     return data
   }
 }

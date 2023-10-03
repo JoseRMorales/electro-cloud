@@ -4,6 +4,7 @@ from typing import Annotated
 from tools.utils import logger
 from tools.energy_analysis_lib import core
 from io import StringIO
+import json
 
 router = APIRouter()
 
@@ -64,13 +65,13 @@ async def process(consumption_file: Annotated[UploadFile, File()]):
 
 
 @router.get("/time-slots")
-def get_results_time_slot_energy() -> list:
+def get_results_time_slots_energy() -> dict:
     """
     Return a list of all the time slot energy results to the api.
 
     :param analysisId: The id of the analysis
     """
-    logger.info("GET /api/energy/consumption-time-slot")
+    logger.info("GET /api/energy/time-slots")
     try:
         results_list = core.get_results_time_slot_energy()
     # TODO: Better exception handling
@@ -79,5 +80,6 @@ def get_results_time_slot_energy() -> list:
         logger.error("The time slot energy results do not exist")
         return Response(status_code=404)
 
-    logger.info("Request processed")
-    return results_list
+    print(results_list)
+    response = {"results": results_list}
+    return response
