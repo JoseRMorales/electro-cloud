@@ -40,7 +40,10 @@ SUPABASE_STORAGE = {
             },
             "production_path": "data/production/",
             "plots_path": "data/plots/",
-            "output_path": "data/output/",
+            "output": {
+                "path": "data/output/",
+                "time_slots": "data/output/time_slots/",
+            },
         }
     }
 }

@@ -6,7 +6,9 @@ from tools.utils import logger
 from tools.energy_analysis_lib.energy import parse_consumption_file
 import tools.energy_analysis_lib.solar as solar
 import tools.energy_analysis_lib.energy as energy
-from .constants import PATHS
+from .constants import PATHS, SUPABASE_STORAGE, SUPABASE_TABLES
+from .utils import get_supabase_client
+from supabase import StorageException
 
 
 def solar_calculation(
@@ -211,41 +213,35 @@ def get_results_time_slot_energy_by_id(analysisId: str) -> bytes:
 
     :param analysisId: The id of the analysis
     """
-    # Calculate
-    energy.process_results_time_slot_energy(analysisId)
-
+    # Check if the results exist in supabase
+    path = SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
+    supabase = get_supabase_client()
     try:
-        results_time_slot_energy = open(
-            PATHS["output"] + "results_time_slot_consumption_" + analysisId + ".csv",
-            "rb",
+        path = (
+            SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
+            + f"{analysisId}.csv"
         )
-    except Exception as e:
-        logger.error(e)
-        logger.error("The time slot energy results do not exist")
-        raise FileNotFoundError("The time slot energy results do not exist")
+        res = supabase.storage.from_(
+            SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
+        ).download(path)
+    except StorageException:
+        logger.info("The time slot energy results do not exist, calculating")
+        # Calculate
+        res = energy.process_results_time_slot_energy(analysisId)
 
-    return results_time_slot_energy.read()
+    return res
 
 
 def get_results_time_slot_energy() -> list:
     """
     Return all the analysisId
     """
-    # In the output folder read all the files and extract the analysisId
-    try:
-        files = os.listdir(PATHS["output"])
-        uuids = []
+    supabase = get_supabase_client()
+    res = (
+        supabase.table(SUPABASE_TABLES["energy_analysis"])
+        .select("analysisId")
+        .execute()
+    )
+    res = res.data
 
-        for file in files:
-            if file.startswith("results_time_slot_consumption_"):
-                # Extract the UUID from the file name using a regular expression
-                uuid = re.search(
-                    r"(?<=results_time_slot_consumption_)[\w-]+", file
-                ).group(0)
-                uuids.append(uuid)
-
-        return uuids
-    except Exception as e:
-        logger.error(e)
-        logger.error("Error getting the time slot energy results")
-        raise e
+    return res

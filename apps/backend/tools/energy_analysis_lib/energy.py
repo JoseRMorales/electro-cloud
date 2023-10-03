@@ -1,14 +1,11 @@
 import pandas as pd
 import datetime
 from .constants import PATHS, TIME_SLOTS, SUPABASE_STORAGE, SUPABASE_TABLES
-from .utils import is_within_time_slot, save_csv_to_variable
+from .utils import is_within_time_slot, save_csv_to_variable, get_supabase_client
 from tools.utils import logger
 import os
-from supabase import create_client, Client, StorageException
-
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
-supabase: Client = create_client(url, key)
+from supabase import StorageException
+import io
 
 
 def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
@@ -65,6 +62,8 @@ def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
     # Remove hour 25 corresponding to the change to winter time
     df = df[df["Hour"] != 25]
 
+    supabase = get_supabase_client()
+
     # Check if buckets exist
     try:
         supabase.storage.get_bucket(
@@ -119,24 +118,34 @@ def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
     logger.info("Table upserted")
 
 
-def process_results_time_slot_energy(analysisId: str) -> None:
+def process_results_time_slot_energy(analysisId: str) -> bytes:
     """
     Calculates the results of the time slot analysis
 
     :param analysisId: id of the user
-    :return: None
+    :return: CSV file with the results
     """
     logger.info("Calculating time slot energy results")
+
+    supabase = get_supabase_client()
     # Load the consumption data
     try:
+        # Get file from supabase
+        res = supabase.storage.from_(
+            SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
+        ).download(
+            SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["hourly_path"]
+            + f"{analysisId}.csv"
+        )
+        res = io.BytesIO(res)
         df = pd.read_csv(
-            PATHS["consumption"] + "parsed_hourly_" + analysisId + ".csv",
+            res,
             sep=";",
             decimal=",",
             thousands=".",
             encoding="UTF-8",
         )
-    except FileNotFoundError:
+    except StorageException:
         raise FileNotFoundError("Consumption file not found")
     logger.info("Consumption data loaded")
     # Create datetime column
@@ -207,9 +216,19 @@ def process_results_time_slot_energy(analysisId: str) -> None:
     os.makedirs(PATHS["output"], exist_ok=True)
 
     # Save the results
-    df.to_csv(
-        PATHS["output"] + "results_time_slot_consumption_" + analysisId + ".csv",
-        sep=";",
-        decimal=".",
-        encoding="UTF-8",
+    results_csv = save_csv_to_variable(df)
+
+    # Upload the file to supabase
+    path = (
+        SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
+        + f"{analysisId}.csv"
     )
+    supabase.storage.from_(
+        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
+    ).upload(
+        file=results_csv,
+        path=path,
+        file_options={"contentType": "text/csv"},
+    )
+
+    return results_csv

@@ -63,27 +63,21 @@ async def process(consumption_file: Annotated[UploadFile, File()]):
     return {"analysisId": analysisId}
 
 
-@router.get("/time-slots/")
-def get_results_time_slot_energy() -> bytes:
+@router.get("/time-slots")
+def get_results_time_slot_energy() -> list:
     """
-    Return the time slot energy results to the api.
+    Return a list of all the time slot energy results to the api.
 
     :param analysisId: The id of the analysis
     """
     logger.info("GET /api/energy/consumption-time-slot")
     try:
-        time_slot_energy_results = core.get_results_time_slot_energy_by_id(analysisId)
+        results_list = core.get_results_time_slot_energy()
     # TODO: Better exception handling
     except Exception as e:
         logger.error(e)
         logger.error("The time slot energy results do not exist")
-        raise FileNotFoundError("The time slot energy results do not exist")
-
-    headers = {
-        "Content-Disposition": 'attachment; filename="results_time_slot_energy.csv"'
-    }
+        return Response(status_code=404)
 
     logger.info("Request processed")
-    return Response(
-        content=time_slot_energy_results, headers=headers, media_type="text/csv"
-    )
+    return results_list

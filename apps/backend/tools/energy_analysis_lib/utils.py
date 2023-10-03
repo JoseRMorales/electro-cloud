@@ -1,6 +1,8 @@
 import datetime
 import io
 import pandas as pd
+from supabase import create_client, Client
+import os
 
 
 def is_within_time_slot(
@@ -58,3 +60,11 @@ def save_csv_to_variable(df: pd.DataFrame) -> io.BytesIO:
     csv_bytes = csv_buffer.getvalue().encode("utf-8")
 
     return csv_bytes
+
+
+def get_supabase_client() -> Client:
+    url: str = os.environ.get("SUPABASE_URL")
+    key: str = os.environ.get("SUPABASE_KEY")
+    supabase: Client = create_client(url, key)
+
+    return supabase

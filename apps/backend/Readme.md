@@ -8,3 +8,4 @@
 - [ ] Possible database
 - [ ] Better caching
 - [ ] Testing
+- [ ] Supabase client exception handling
