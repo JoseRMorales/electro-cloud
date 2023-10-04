@@ -20,7 +20,7 @@ def get_results_time_slot_energy_by_id(analysisId: str) -> bytes:
 
     :param analysisId: The id of the analysis
     """
-    logger.info("GET /api/energy/consumption-time-slot")
+    logger.info(f"GET /api/energy/time-slots/{analysisId}")
     try:
         time_slot_energy_results = core.get_results_time_slot_energy_by_id(analysisId)
     # TODO: Better exception handling
@@ -46,7 +46,8 @@ def delete_results_time_slot_energy_by_id(analysisId: str):
 
     :param analysisId: The id of the analysis
     """
-    logger.info("DELETE /api/energy/time-slots")
+    logger.info(f"DELETE /api/energy/time-slots/{analysisId}")
+
     message = core.delete_results_time_slot_energy_by_id(analysisId)
     return {"message": message}
 
@@ -59,7 +60,7 @@ async def process(consumption_file: Annotated[UploadFile, File()]):
     :param consumption_file: consumption file
     :return: None
     """
-    logger.info("Processing consumption file")
+    logger.info("POST /api/energy/time-slots")
 
     consumption_file = await consumption_file.read()
     consumption_file = StringIO(consumption_file.decode("utf-8"))

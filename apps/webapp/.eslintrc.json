@@ -19,7 +19,8 @@
     "@typescript-eslint/no-misused-promises": "off",
     "react/jsx-indent":  [2, 2],
     "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error"
+    "simple-import-sort/exports": "error",
+    "@typescript-eslint/naming-convention": "off"
   },
   "globals": {
     "React": true,

@@ -1,4 +1,4 @@
-import { type EnergyProcessFileResponse, type GetAllResultsTimeSlotsResponse, type HelloApiResponse, type HelloSolarResponse } from './responses'
+import { type DeleteAnalysisResponse, type EnergyProcessFileResponse, type GetAllResultsTimeSlotsResponse, type HelloApiResponse, type HelloSolarResponse } from './responses'
 
 class SolarAnalysisApi {
   private readonly url: string
@@ -23,6 +23,7 @@ class SolarAnalysisApi {
 
   async postEnergyFile (formData: FormData): Promise<string> {
     // Extract the file from the FormData object
+    console.log('posting')
     const res = await fetch(`${this.url}/energy/time-slots`, {
       method: 'POST',
       body: formData
@@ -33,7 +34,7 @@ class SolarAnalysisApi {
   }
 
   async getEnergyByTimeSlot (analysisId: string): Promise<string> {
-    console.log('analysisId', analysisId)
+    console.log('get analysisId', analysisId)
     const res = await fetch(`${this.url}/energy/time-slots/${analysisId}`)
     const data = await res.text()
     return data
@@ -43,6 +44,14 @@ class SolarAnalysisApi {
     const res = await fetch(`${this.url}/energy/time-slots`)
     const data = await res.json() as GetAllResultsTimeSlotsResponse
     return data
+  }
+
+  async deleteAnalysis (analysisId: string): Promise<string> {
+    const res = await fetch(`${this.url}/energy/time-slots/${analysisId}`, {
+      method: 'DELETE'
+    })
+    const { message } = await res.json() as DeleteAnalysisResponse
+    return message
   }
 }
 

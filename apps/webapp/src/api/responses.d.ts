@@ -16,8 +16,12 @@ export interface GetAllResultsTimeSlotsResponse {
 
 export interface GetAllResultsTimeSlotsResults {
   analysisID: string
-  createdAt: Date
+  created_at: Date
   name: null
   holder: null
-  analysisTimeSlots: boolean
+  analysis_time_slots: boolean
+}
+
+export interface DeleteAnalysisResponse {
+  message: string
 }
