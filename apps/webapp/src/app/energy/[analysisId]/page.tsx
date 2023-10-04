@@ -2,7 +2,6 @@ import { getEnergyByTimeSlot } from '@/actions/energy-form'
 import DataTable from '@/components/ui/data-table'
 
 const EnergyAnalysisPage = async ({ params }: { params: { analysisId: string } }) => {
-  console.log('Rendered')
   const data = await getEnergyByTimeSlot(params.analysisId)
 
   return (

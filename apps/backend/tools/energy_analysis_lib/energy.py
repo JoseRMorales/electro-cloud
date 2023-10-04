@@ -1,6 +1,6 @@
 import pandas as pd
 import datetime
-from .constants import PATHS, TIME_SLOTS, SUPABASE_STORAGE, SUPABASE_TABLES
+from .constants import TIME_SLOTS, SUPABASE_STORAGE, SUPABASE_TABLES
 from .utils import is_within_time_slot, save_csv_to_variable, get_supabase_client
 from tools.utils import logger
 import os
@@ -211,9 +211,6 @@ def process_results_time_slot_energy(analysisId: str) -> bytes:
             "16h_No promocionadas",
         ]
     )
-
-    # Create directory if it does not exist at path PATHS["output"]
-    os.makedirs(PATHS["output"], exist_ok=True)
 
     # Save the results
     results_csv = save_csv_to_variable(df)

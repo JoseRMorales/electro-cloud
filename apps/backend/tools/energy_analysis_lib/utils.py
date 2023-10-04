@@ -50,7 +50,7 @@ def save_csv_to_variable(df: pd.DataFrame) -> io.BytesIO:
     csv_buffer = io.StringIO()
     df.to_csv(
         csv_buffer,
-        index=False,
+        index=True,
         sep=";",
         decimal=",",
         encoding="UTF-8",
