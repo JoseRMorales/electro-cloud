@@ -86,7 +86,7 @@ const DataTable = ({ data }: DataTableProps) => {
           .join('\n')
       setFormattedData(newData)
     }
-  }, [commaSeparator])
+  }, [commaSeparator, data])
 
   return (
     <>
@@ -94,33 +94,33 @@ const DataTable = ({ data }: DataTableProps) => {
         <Table>
           <Table.Head>
             {
-        header.split(';').map((item, index) => {
-          return (
-            <Table.HeadCell key={index} className='select-none'>
-              {item}
-            </Table.HeadCell>
-          )
-        })
-      }
-          </Table.Head>
-          <Table.Body className='divide-y'>
-            {
-        formattedData.split('\n').slice(1).filter((row) => row !== '').map((row, index) => {
-          return (
-            <Table.Row key={index} className='bg-white dark:border-gray-700 dark:bg-gray-800'>
-              {
-              row.split(';').map((item, index) => {
+              header.split(';').map((item, index) => {
                 return (
-                  <Table.Cell key={index} { ...(index === 0 && { className: firstColumnClass }) }>
+                  <Table.HeadCell key={index} className='select-none'>
                     {item}
-                  </Table.Cell>
+                  </Table.HeadCell>
                 )
               })
             }
-            </Table.Row>
-          )
-        })
-      }
+          </Table.Head>
+          <Table.Body className='divide-y'>
+            {
+              formattedData.split('\n').slice(1).filter((row) => row !== '').map((row, index) => {
+                return (
+                  <Table.Row key={index} className='bg-white dark:border-gray-700 dark:bg-gray-800'>
+                    {
+                    row.split(';').map((item, index) => {
+                      return (
+                        <Table.Cell key={index} { ...(index === 0 && { className: firstColumnClass }) }>
+                          {item}
+                        </Table.Cell>
+                      )
+                    })
+                  }
+                  </Table.Row>
+                )
+              })
+            }
           </Table.Body>
         </Table>
       </article>

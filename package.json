@@ -14,5 +14,10 @@
     "turbo": "latest"
   },
   "packageManager": "pnpm@8.6.10",
-  "name": "electro-cloud"
+  "name": "electro-cloud",
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^17.0.38"
+    }
+  }
 }

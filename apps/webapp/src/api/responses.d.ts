@@ -7,7 +7,7 @@ export interface HelloSolarResponse {
 }
 
 export interface EnergyProcessFileResponse {
-  message: string
+  analysisId: string
 }
 
 export interface GetAllResultsTimeSlotsResponse {
@@ -15,8 +15,8 @@ export interface GetAllResultsTimeSlotsResponse {
 }
 
 export interface GetAllResultsTimeSlotsResults {
-  analysisID: string
-  created_at: Date
+  analysisId: string
+  created_at: string
   name: null
   holder: null
   analysis_time_slots: boolean

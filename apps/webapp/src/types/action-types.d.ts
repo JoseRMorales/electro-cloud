@@ -1,3 +1,3 @@
-export interface IAction {
+export interface sIAction {
   message: string
 }

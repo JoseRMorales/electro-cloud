@@ -25,6 +25,7 @@ const FileUploadForm = () => {
   const [state, formAction] = useFormState(postEnergyFile, initialState)
 
   return (
+    // @ts-expect-error Experimental Form Action
     <form action={formAction} >
       <FileUpload required/>
       <SubmitButton />

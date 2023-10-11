@@ -10,6 +10,12 @@
 - [ ] Testing
 - [ ] Supabase client exception handling
 - [ ] Return number of days in time slots energy analysis
+- [ ] Testing
 
-### Frontend
+### Frontend 
 - [ ] Display number of days in time slots energy analysis
+- [ ] Testing
+
+### General
+- [ ] Dockerize
+- [ ] Deploying

@@ -21,8 +21,8 @@ const AnalysisCardGrid = async () => {
             <AnalysisCard
               key={result.analysisId}
               analysisId={result.analysisId}
-              holder={result.holder}
-              name={result.name}
+              holder={result.holder ?? undefined}
+              name={result.name ?? undefined}
               created_at={result.created_at}
             />
           ))

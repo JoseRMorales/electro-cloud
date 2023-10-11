@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache'
 
 import SolarAnalysisApi from '@/api/solarAnalysisApi'
-import { type IAction } from '@/types/action-types'
 
 export const postEnergyFile = async (prevState: any, formData: FormData) => {
   const api = new SolarAnalysisApi()
@@ -12,7 +11,7 @@ export const postEnergyFile = async (prevState: any, formData: FormData) => {
   revalidatePath('/energy')
 }
 
-export const getEnergyByTimeSlot = async (analysisId: string): Promise<IAction> => {
+export const getEnergyByTimeSlot = async (analysisId: string): Promise<string> => {
   const api = new SolarAnalysisApi()
   const data = await api.getEnergyByTimeSlot(analysisId)
 
