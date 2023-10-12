@@ -12,6 +12,7 @@ env:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    permissions: write-all
     strategy:
       matrix:
         include:
