@@ -32,13 +32,13 @@ const DataTable = ({ data }: DataTableProps) => {
   }
 
   const handleCopyToClipboard = () => {
-    const content = cleanData(data)
+    const content = cleanData(formattedData)
     navigator.clipboard.writeText(content)
     launchToast()
   }
 
   const handleCopyFirstGroup = () => {
-    const content = cleanData(data)
+    const content = cleanData(formattedData)
     // Get first group. The first 3 rows
     const firstGroup = content.split('\n').slice(0, 3).join('\n')
     navigator.clipboard.writeText(firstGroup)
@@ -46,7 +46,7 @@ const DataTable = ({ data }: DataTableProps) => {
   }
 
   const handleCopySecondGroup = () => {
-    const content = cleanData(data)
+    const content = cleanData(formattedData)
     // Get second group. The following 2 rows
     const secondGroup = content.split('\n').slice(3, 5).join('\n')
     navigator.clipboard.writeText(secondGroup)
@@ -54,7 +54,7 @@ const DataTable = ({ data }: DataTableProps) => {
   }
 
   const handleCopyThirdGroup = () => {
-    const content = cleanData(data)
+    const content = cleanData(formattedData)
     // Get third group. The following 2 rows
     const thirdGroup = content.split('\n').slice(5, 7).join('\n')
     navigator.clipboard.writeText(thirdGroup)
@@ -62,7 +62,7 @@ const DataTable = ({ data }: DataTableProps) => {
   }
 
   const handleCopyFourthGroup = () => {
-    const content = cleanData(data)
+    const content = cleanData(formattedData)
     // Get fourth group. The following 2 rows
     const fourthGroup = content.split('\n').slice(7, 9).join('\n')
     navigator.clipboard.writeText(fourthGroup)

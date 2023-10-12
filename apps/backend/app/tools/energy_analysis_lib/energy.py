@@ -3,7 +3,6 @@ import datetime
 from .constants import TIME_SLOTS, SUPABASE_STORAGE, SUPABASE_TABLES
 from .utils import is_within_time_slot, save_csv_to_variable, get_supabase_client
 from tools.utils import logger
-import os
 from supabase import StorageException
 import io
 
@@ -38,7 +37,11 @@ def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
     df["Hour"] = df["Hora"]
 
     df = df.drop(columns=["Hora"])
-    df = df.rename(columns={"Consumo_kWh": "Energy", "Fecha": "Datetime"})
+    df = df.rename(columns={"Fecha": "Datetime"})
+    # One column can be named "Consumo" or "Consumo_kWh" depending on the file. Rename
+    # it to "Energy"
+    df = df.rename(columns={"Consumo": "Energy"})
+    df = df.rename(columns={"Consumo": "Energy", "Consumo_kWh": "Energy"})
 
     # At the moment only same year data is supported
     # Throw error if there are multiple rows with same month, day and hour
