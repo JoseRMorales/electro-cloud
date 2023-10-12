@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [ "docker" ]
 
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -15,6 +19,7 @@ jobs:
             dockerfile: apps/backend/Dockerfile
           - image: ghcr.io/JoseRa9/electro-cloud-webapp
             dockerfile: apps/webapp/Dockerfile
+            
     steps:
       - name: Checkout
         uses: actions/checkout@v3
