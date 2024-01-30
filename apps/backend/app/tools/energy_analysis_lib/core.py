@@ -1,7 +1,10 @@
 import uuid
 import tools.pvgis_api_wrapper as api
 from tools.utils import logger
-from tools.energy_analysis_lib.energy import parse_consumption_file
+from tools.energy_analysis_lib.energy import (
+    parse_consumption_file,
+    parse_consumption_file_with_generation,
+)
 import tools.energy_analysis_lib.solar as solar
 import tools.energy_analysis_lib.energy as energy
 from .constants import PATHS, SUPABASE_STORAGE, SUPABASE_TABLES
@@ -197,12 +200,22 @@ def process_consumption_file(consumption_file: bytes) -> str:
     analysisId = str(uuid.uuid4())
 
     try:
-        parse_consumption_file(consumption_file, analysisId)
+        # Read StringIO object into a string
+        consumption_file_str = consumption_file.getvalue()
+
+        # Split string into rows
+        rows = consumption_file_str.split("\n")
+
+        # If first row contains a "GENERACION Wh" string, then it is a solar file
+        if "GENERACION Wh" in rows[0]:
+            parse_consumption_file_with_generation(consumption_file, analysisId)
+        else:
+            parse_consumption_file(consumption_file, analysisId)
+
+        return analysisId
     except Exception as e:
         logger.error(e)
         raise e
-    logger.info("Consumption file processed")
-    return analysisId
 
 
 def get_results_time_slot_energy_by_id(analysisId: str) -> bytes:
@@ -225,7 +238,18 @@ def get_results_time_slot_energy_by_id(analysisId: str) -> bytes:
     except StorageException:
         logger.info("The time slot energy results do not exist, calculating")
         # Calculate
-        res = energy.process_results_time_slot_energy(analysisId)
+        # Get the row with the primary key "analysisId"
+        row = (
+            supabase.table(SUPABASE_TABLES["energy_analysis"])
+            .select("*")
+            .eq("analysisId", analysisId)
+            .execute()
+        )  # Check if the "solar" column is True
+        print(row.data)
+        if row.data and row.data[0]["solar"]:
+            res = energy.process_results_time_slot_energy_with_generation(analysisId)
+        else:
+            res = energy.process_results_time_slot_energy(analysisId)
 
     return res
 
@@ -271,6 +295,16 @@ def delete_results_time_slot_energy_by_id(analysisId: str):
 
     # Delete the results from supabase storage
     path = SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
+    supabase.storage.from_(
+        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
+    ).remove(path + f"{analysisId}.csv")
+
+    path = SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["hourly"]
+    supabase.storage.from_(
+        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
+    ).remove(path + f"{analysisId}.csv")
+
+    path = SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["monthly"]
     supabase.storage.from_(
         SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
     ).remove(path + f"{analysisId}.csv")

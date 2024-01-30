@@ -35,8 +35,8 @@ SUPABASE_STORAGE = {
             "name": "energy_analysis",
             "consumption": {
                 "path": "data/consumption/",
-                "monthly_path": "data/consumption/monthly/",
-                "hourly_path": "data/consumption/hourly/",
+                "monthly": "data/consumption/monthly/",
+                "hourly": "data/consumption/hourly/",
             },
             "production_path": "data/production/",
             "plots_path": "data/plots/",
