@@ -8,7 +8,7 @@ services:
       dockerfile: ./apps/webapp/Dockerfile
     restart: always
     ports:
-      - 3000:3000
+      - 3100:3000
     networks:
       - app_network
     env_file:
@@ -20,7 +20,7 @@ services:
       dockerfile: ./apps/backend/Dockerfile
     restart: always
     ports:
-      - 8001:80
+      - 8101:80
     networks:
       - app_network
     env_file:

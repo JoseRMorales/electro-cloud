@@ -10,6 +10,7 @@ import tools.energy_analysis_lib.energy as energy
 from .constants import PATHS, SUPABASE_STORAGE, SUPABASE_TABLES
 from .utils import get_supabase_client
 from supabase import StorageException
+import traceback
 
 
 def solar_calculation(
@@ -215,6 +216,7 @@ def process_consumption_file(consumption_file: bytes) -> str:
         return analysisId
     except Exception as e:
         logger.error(e)
+        traceback.print_exc()
         raise e
 
 
