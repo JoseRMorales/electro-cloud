@@ -1,13 +1,15 @@
-import pandas as pd
+import datetime
 import logging
+
+import numpy as np
+import pandas as pd
 import tools.pvgis_api_wrapper as api
 from matplotlib import pyplot as plt
-import numpy as np
-import datetime
-from .constants import TIME_SLOTS, PATHS
-from .utils import is_within_time_slot
-from .energy import process_results_time_slot_energy
 from tools.utils import logger
+
+from .constants import PATHS, TIME_SLOTS
+from .energy import process_results_time_slot_energy
+from .utils import is_within_time_slot
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 

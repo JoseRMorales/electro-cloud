@@ -1,16 +1,18 @@
+import traceback
 import uuid
+
+import tools.energy_analysis_lib.energy as energy
+import tools.energy_analysis_lib.solar as solar
 import tools.pvgis_api_wrapper as api
-from tools.utils import logger
+from supabase import StorageException
 from tools.energy_analysis_lib.energy import (
     parse_consumption_file,
     parse_consumption_file_with_generation,
 )
-import tools.energy_analysis_lib.solar as solar
-import tools.energy_analysis_lib.energy as energy
+from tools.utils import logger
+
 from .constants import PATHS, SUPABASE_STORAGE, SUPABASE_TABLES
 from .utils import get_supabase_client
-from supabase import StorageException
-import traceback
 
 
 def solar_calculation(

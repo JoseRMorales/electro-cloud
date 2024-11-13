@@ -1,10 +1,12 @@
-import pandas as pd
 import datetime
-from .constants import TIME_SLOTS, SUPABASE_STORAGE, SUPABASE_TABLES
-from .utils import is_within_time_slot, save_csv_to_variable, get_supabase_client
-from tools.utils import logger
-from supabase import StorageException
 import io
+
+import pandas as pd
+from supabase import StorageException
+from tools.utils import logger
+
+from .constants import SUPABASE_STORAGE, SUPABASE_TABLES, TIME_SLOTS
+from .utils import get_supabase_client, is_within_time_slot, save_csv_to_variable
 
 
 def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:

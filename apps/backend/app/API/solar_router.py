@@ -1,10 +1,10 @@
-from fastapi import File, Form, UploadFile, HTTPException, Response, APIRouter
-from tools.utils import logger
-from typing import Annotated
-from io import StringIO, BytesIO
-from tools.energy_analysis_lib import core
 import zipfile
+from io import BytesIO, StringIO
+from typing import Annotated
 
+from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
+from tools.energy_analysis_lib import core
+from tools.utils import logger
 
 router = APIRouter()
 

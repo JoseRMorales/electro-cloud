@@ -1,8 +1,9 @@
 import datetime
 import io
-import pandas as pd
-from supabase import create_client, Client
 import os
+
+import pandas as pd
+from supabase import Client, create_client
 
 
 def is_within_time_slot(

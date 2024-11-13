@@ -2,8 +2,9 @@ from fastapi import FastAPI
 
 # from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
-from .solar_router import router as solar_router
+
 from .energy_router import router as energy_router
+from .solar_router import router as solar_router
 
 app = FastAPI()
 
