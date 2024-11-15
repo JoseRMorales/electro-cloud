@@ -92,6 +92,5 @@ def get_results_time_slots_energy() -> dict:
         logger.error("The time slot energy results do not exist")
         return Response(status_code=404)
 
-    print(results_list)
     response = {"results": results_list}
     return response

@@ -1,18 +1,18 @@
+import os
 import traceback
 import uuid
 
 import tools.energy_analysis_lib.energy as energy
 import tools.energy_analysis_lib.solar as solar
+import tools.energy_analysis_lib.utils as lib_utils
 import tools.pvgis_api_wrapper as api
-from supabase import StorageException
 from tools.energy_analysis_lib.energy import (
     parse_consumption_file,
     parse_consumption_file_with_generation,
 )
 from tools.utils import logger
 
-from .constants import PATHS, SUPABASE_STORAGE, SUPABASE_TABLES
-from .utils import get_supabase_client
+from .constants import PATHS
 
 
 def solar_calculation(
@@ -228,50 +228,54 @@ def get_results_time_slot_energy_by_id(analysisId: str) -> bytes:
 
     :param analysisId: The id of the analysis
     """
-    # Check if the results exist in supabase
-    path = SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
-    supabase = get_supabase_client()
+    # Check if the results exist in output folder
+    time_slot_energy_results = None
     try:
-        path = (
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
-            + f"{analysisId}.csv"
-        )
-        res = supabase.storage.from_(
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-        ).download(path)
-    except StorageException:
+        output_path = lib_utils.output_path
+        time_slot_energy_results = open(
+            os.path.join(output_path, "time_slots", f"{analysisId}.csv"), "rb"
+        ).read()
+    except FileNotFoundError:
         logger.info("The time slot energy results do not exist, calculating")
-        # Calculate
-        # Get the row with the primary key "analysisId"
-        row = (
-            supabase.table(SUPABASE_TABLES["energy_analysis"])
-            .select("*")
-            .eq("analysisId", analysisId)
-            .execute()
-        )  # Check if the "solar" column is True
-        print(row.data)
-        if row.data and row.data[0]["solar"]:
-            res = energy.process_results_time_slot_energy_with_generation(analysisId)
-        else:
-            res = energy.process_results_time_slot_energy(analysisId)
 
-    return res
+        hourly = None
+        # Check if the hourly consumption file exists
+        try:
+            hourly = open(
+                os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv"), "rb"
+            )
+        except FileNotFoundError:
+            logger.error("The hourly consumption file does not exist")
+            raise FileNotFoundError("The hourly consumption file does not exist")
+        # If first row contains a "Generation" column, then it is a solar file
+        if "Generation" in hourly.readline().decode("utf-8"):
+            time_slot_energy_results = (
+                energy.process_results_time_slot_energy_with_generation(analysisId)
+            )
+        else:
+            time_slot_energy_results = energy.process_results_time_slot_energy(
+                analysisId
+            )
+    return time_slot_energy_results
 
 
 def get_results_time_slot_energy() -> list:
     """
     Return all the analysisId
     """
-    supabase = get_supabase_client()
-    res = (
-        supabase.table(SUPABASE_TABLES["energy_analysis"])
-        .select("*")
-        .filter("analysis_time_slots", "eq", True)
-        .execute()
-    )
-    res = res.data
+    output_path = lib_utils.output_path
 
-    return res
+    # Check csv files in "parsed_hourly" folder
+    files = os.listdir(os.path.join(output_path, "parsed_hourly"))
+    analysisIds = []
+    for file in files:
+        # Check if the file is a csv file
+        if file.endswith(".csv"):
+            # Remove the extension
+            analysisId = file[:-4]
+            analysisIds.append(analysisId)
+
+    return analysisIds
 
 
 def delete_results_time_slot_energy_by_id(analysisId: str):
@@ -280,38 +284,16 @@ def delete_results_time_slot_energy_by_id(analysisId: str):
 
     :param analysisId: The id of the analysis
     """
-    # Check if the results exist in supabase
-    supabase = get_supabase_client()
-    res = (
-        supabase.table(SUPABASE_TABLES["energy_analysis"])
-        .select("*")
-        .filter("analysisId", "eq", analysisId)
-        .execute()
-    )
-    # If the analysis does not exist, return message
-    if res.data == []:
-        message = "The analysis does not exist"
-        return message
+    output_path = lib_utils.output_path
+    # Delet if exists in folders 'parsed_hourly', 'parsed_monthly' and 'time_slots'
+    if os.path.exists(os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv")):
+        os.remove(os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv"))
 
-    supabase.table(SUPABASE_TABLES["energy_analysis"]).delete().filter(
-        "analysisId", "eq", analysisId
-    ).execute()
+    if os.path.exists(os.path.join(output_path, "parsed_monthly", f"{analysisId}.csv")):
+        os.remove(os.path.join(output_path, "parsed_monthly", f"{analysisId}.csv"))
 
-    # Delete the results from supabase storage
-    path = SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
-    supabase.storage.from_(
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-    ).remove(path + f"{analysisId}.csv")
-
-    path = SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["hourly"]
-    supabase.storage.from_(
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-    ).remove(path + f"{analysisId}.csv")
-
-    path = SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["monthly"]
-    supabase.storage.from_(
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-    ).remove(path + f"{analysisId}.csv")
+    if os.path.exists(os.path.join(output_path, "time_slots", f"{analysisId}.csv")):
+        os.remove(os.path.join(output_path, "time_slots", f"{analysisId}.csv"))
 
     message = "The analysis was deleted"
 

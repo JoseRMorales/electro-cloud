@@ -28,26 +28,3 @@ PATHS = {
     "plots": "./tools/data/plots/",
     "output": "./tools/data/output/",
 }
-
-SUPABASE_STORAGE = {
-    "buckets": {
-        "energy_analysis": {
-            "name": "energy_analysis",
-            "consumption": {
-                "path": "data/consumption/",
-                "monthly": "data/consumption/monthly/",
-                "hourly": "data/consumption/hourly/",
-            },
-            "production_path": "data/production/",
-            "plots_path": "data/plots/",
-            "output": {
-                "path": "data/output/",
-                "time_slots": "data/output/time_slots/",
-            },
-        }
-    }
-}
-
-SUPABASE_TABLES = {
-    "energy_analysis": "energy_analysis",
-}

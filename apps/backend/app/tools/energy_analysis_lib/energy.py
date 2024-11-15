@@ -1,12 +1,11 @@
 import datetime
-import io
+import os
 
 import pandas as pd
-from supabase import StorageException
+from tools.energy_analysis_lib import utils as lib_utils
 from tools.utils import logger
 
-from .constants import SUPABASE_STORAGE, SUPABASE_TABLES, TIME_SLOTS
-from .utils import get_supabase_client, is_within_time_slot, save_csv_to_variable
+from .constants import TIME_SLOTS
 
 
 def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
@@ -55,7 +54,6 @@ def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
         )
     else:
         logger.info("No duplicated rows")
-    print(df.head())
     # Create a dataframe with monthly data
     df_monthly = df.drop(columns=["Datetime"]).groupby(["Month"]).sum()
     df_monthly = df_monthly.reset_index()
@@ -65,61 +63,14 @@ def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
 
     # Remove hour 25 corresponding to the change to winter time
     df = df[df["Hour"] != 25]
-    print(df.head())
-    supabase = get_supabase_client()
-
-    # Check if buckets exist
-    try:
-        supabase.storage.get_bucket(
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-        )
-    except StorageException:
-        # Create bucket
-        supabase.storage.create_bucket(
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-        )
 
     # Save the dataframe as a csv file
-    monthly_csv = save_csv_to_variable(df_monthly)
-    logger.info(f"Written file parsed_monthly_{analysisId}.csv")
+    hourly_csv = lib_utils.save_csv_file("parsed_hourly", analysisId, df)
+    logger.info(f"Written file {hourly_csv}")
 
-    # Upload the file to supabase
-    path = (
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["monthly"]
-        + f"{analysisId}.csv"
-    )
-    supabase.storage.from_(
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-    ).upload(
-        file=monthly_csv,
-        path=path,
-        file_options={"contentType": "text/csv"},
-    )
-    logger.info("File uploaded")
-
-    # Save the dataframe as a csv file
-    hourly_csv = save_csv_to_variable(df)
-    logger.info(f"Written file parsed_hourly_{analysisId}.csv")
-
-    # Upload the file to supabase
-    path = (
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["hourly"]
-        + f"{analysisId}.csv"
-    )
-    supabase.storage.from_(
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-    ).upload(
-        file=hourly_csv,
-        path=path,
-        file_options={"contentType": "text/csv"},
-    )
-    logger.info("File uploaded")
-
-    # Upsert table
-    supabase.table(SUPABASE_TABLES["energy_analysis"]).upsert(
-        {"analysisId": analysisId, "analysis_time_slots": True, "solar": False}
-    ).execute()
-    logger.info("Table upserted")
+    # Save the monthly dataframe as a csv file
+    monthly_csv = lib_utils.save_csv_file("parsed_monthly", analysisId, df_monthly)
+    logger.info(f"Written file {monthly_csv}")
 
 
 def parse_consumption_file_with_generation(csv_file: bytes, analysisId: str) -> None:
@@ -172,7 +123,6 @@ def parse_consumption_file_with_generation(csv_file: bytes, analysisId: str) -> 
     df["Generation"] = df["Generation"] / 1000
     df["Consumption"] = df["Consumption"] / 1000
 
-    print(df.head(30))
     # Create a dataframe with monthly data
     df_monthly = df.drop(columns=["Datetime"]).groupby(["Month"]).sum()
     df_monthly = df_monthly.reset_index()
@@ -183,60 +133,13 @@ def parse_consumption_file_with_generation(csv_file: bytes, analysisId: str) -> 
     # Remove hour 25 corresponding to the change to winter time
     df = df[df["Hour"] != 25]
 
-    supabase = get_supabase_client()
-
-    # Check if buckets exist
-    try:
-        supabase.storage.get_bucket(
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-        )
-    except StorageException:
-        # Create bucket
-        supabase.storage.create_bucket(
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-        )
-
     # Save the dataframe as a csv file
-    monthly_csv = save_csv_to_variable(df_monthly)
-    logger.info(f"Written file parsed_monthly_{analysisId}.csv")
+    saved_path = lib_utils.save_csv_file("parsed_hourly", analysisId, df)
+    logger.info(f"Written file {saved_path}")
 
-    # Upload the file to supabase
-    path = (
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["monthly"]
-        + f"{analysisId}.csv"
-    )
-    supabase.storage.from_(
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-    ).upload(
-        file=monthly_csv,
-        path=path,
-        file_options={"contentType": "text/csv"},
-    )
-    logger.info("File uploaded")
-
-    # Save the dataframe as a csv file
-    hourly_csv = save_csv_to_variable(df)
-    logger.info(f"Written file parsed_hourly_{analysisId}.csv")
-
-    # Upload the file to supabase
-    path = (
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["hourly"]
-        + f"{analysisId}.csv"
-    )
-    supabase.storage.from_(
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-    ).upload(
-        file=hourly_csv,
-        path=path,
-        file_options={"contentType": "text/csv"},
-    )
-    logger.info("File uploaded")
-
-    # Upsert table
-    supabase.table(SUPABASE_TABLES["energy_analysis"]).upsert(
-        {"analysisId": analysisId, "analysis_time_slots": True, "solar": True}
-    ).execute()
-    logger.info("Table upserted")
+    # Save the monthly dataframe as a csv file
+    saved_path = lib_utils.save_csv_file("parsed_monthly", analysisId, df_monthly)
+    logger.info(f"Written file {saved_path}")
 
 
 def process_results_time_slot_energy(analysisId: str) -> bytes:
@@ -247,28 +150,24 @@ def process_results_time_slot_energy(analysisId: str) -> bytes:
     :return: CSV file with the results
     """
     logger.info("Calculating time slot energy results")
-
-    supabase = get_supabase_client()
-    # Load the consumption data
+    output_path = lib_utils.output_path
+    hourly_file = None
     try:
-        # Get file from supabase
-        res = supabase.storage.from_(
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-        ).download(
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["hourly"]
-            + f"{analysisId}.csv"
+        hourly_file = open(
+            os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv"), "rb"
         )
-        res = io.BytesIO(res)
-        df = pd.read_csv(
-            res,
-            sep=";",
-            decimal=",",
-            thousands=".",
-            encoding="UTF-8",
-        )
-    except StorageException:
-        raise FileNotFoundError("Consumption file not found")
-    logger.info("Consumption data loaded")
+
+    except FileNotFoundError:
+        raise FileNotFoundError("Parsed hourly file not found")
+
+    df = pd.read_csv(
+        hourly_file,
+        sep=";",
+        decimal=",",
+        thousands=".",
+        encoding="UTF-8",
+    )
+
     # Create datetime column
     # TODO: Datetime 2022???
     df["Datetime"] = df.apply(
@@ -283,7 +182,7 @@ def process_results_time_slot_energy(analysisId: str) -> bytes:
         for time_slot_type, time_slot_hours in time_slot.items():
             df[time_slot_name + "_" + time_slot_type] = df.apply(
                 lambda x: x["Energy"]
-                if is_within_time_slot(
+                if lib_utils.is_within_time_slot(
                     x["Hour"],
                     time_slot_hours,
                     x["Datetime"],
@@ -334,20 +233,10 @@ def process_results_time_slot_energy(analysisId: str) -> bytes:
     )
 
     # Save the results
-    results_csv = save_csv_to_variable(df)
+    results_path = lib_utils.save_csv_file("time_slots", analysisId, df)
+    logger.info(f"Written file {results_path}")
 
-    # Upload the file to supabase
-    path = (
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
-        + f"{analysisId}.csv"
-    )
-    supabase.storage.from_(
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-    ).upload(
-        file=results_csv,
-        path=path,
-        file_options={"contentType": "text/csv"},
-    )
+    results_csv = lib_utils.save_csv_to_variable(df)
 
     return results_csv
 
@@ -360,28 +249,24 @@ def process_results_time_slot_energy_with_generation(analysisId: str) -> bytes:
     :return: CSV file with the results
     """
     logger.info("Calculating time slot energy results")
-
-    supabase = get_supabase_client()
-    # Load the consumption data
+    output_path = lib_utils.output_path
+    hourly_file = None
     try:
-        # Get file from supabase
-        res = supabase.storage.from_(
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-        ).download(
-            SUPABASE_STORAGE["buckets"]["energy_analysis"]["consumption"]["hourly"]
-            + f"{analysisId}.csv"
+        hourly_file = open(
+            os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv"), "rb"
         )
-        res = io.BytesIO(res)
-        df = pd.read_csv(
-            res,
-            sep=";",
-            decimal=",",
-            thousands=".",
-            encoding="UTF-8",
-        )
-    except StorageException:
-        raise FileNotFoundError("Consumption file not found")
-    logger.info("Consumption data loaded")
+
+    except FileNotFoundError:
+        raise FileNotFoundError("Parsed hourly file not found")
+
+    df = pd.read_csv(
+        hourly_file,
+        sep=";",
+        decimal=",",
+        thousands=".",
+        encoding="UTF-8",
+    )
+
     # Create datetime column
     # TODO: Datetime 2022???
     df["Datetime"] = df.apply(
@@ -396,7 +281,7 @@ def process_results_time_slot_energy_with_generation(analysisId: str) -> bytes:
         for time_slot_type, time_slot_hours in time_slot.items():
             df[time_slot_name + "_" + time_slot_type] = df.apply(
                 lambda x: x["Consumption"]
-                if is_within_time_slot(
+                if lib_utils.is_within_time_slot(
                     x["Hour"],
                     time_slot_hours,
                     x["Datetime"],
@@ -444,22 +329,11 @@ def process_results_time_slot_energy_with_generation(analysisId: str) -> bytes:
             "Generation",
         ]
     )
-    print(df.head())
 
     # Save the results
-    results_csv = save_csv_to_variable(df)
+    results_path = lib_utils.save_csv_file("time_slots", analysisId, df)
+    logger.info(f"Written file {results_path}")
 
-    # Upload the file to supabase
-    path = (
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["output"]["time_slots"]
-        + f"{analysisId}.csv"
-    )
-    supabase.storage.from_(
-        SUPABASE_STORAGE["buckets"]["energy_analysis"]["name"]
-    ).upload(
-        file=results_csv,
-        path=path,
-        file_options={"contentType": "text/csv"},
-    )
+    results_csv = lib_utils.save_csv_to_variable(df)
 
     return results_csv

@@ -3,7 +3,8 @@ import io
 import os
 
 import pandas as pd
-from supabase import Client, create_client
+
+output_path = os.environ.get("OUTPUT_PATH", "./output")
 
 
 def is_within_time_slot(
@@ -63,9 +64,21 @@ def save_csv_to_variable(df: pd.DataFrame) -> io.BytesIO:
     return csv_bytes
 
 
-def get_supabase_client() -> Client:
-    url: str = os.environ.get("SUPABASE_URL")
-    key: str = os.environ.get("SUPABASE_KEY")
-    supabase: Client = create_client(url, key)
+def save_csv_file(path: str, analysisId: str, df: pd.DataFrame) -> str:
+    """
+    Save the CSV data to a file.
 
-    return supabase
+    :param analysisId: The analysis id
+    :param df: The monthly consumption data
+    :return: The path to the file
+    """
+
+    # Create the path if it does not exist
+    if not os.path.exists(os.path.join(output_path, path)):
+        os.makedirs(os.path.join(output_path, path))
+
+    # Save the CSV data to a file
+    save_path = os.path.join(output_path, path, f"{analysisId}.csv")
+    df.to_csv(save_path, index=False, sep=";", decimal=",", encoding="UTF-8")
+
+    return str(save_path)
