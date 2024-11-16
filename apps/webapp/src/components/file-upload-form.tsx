@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/strict-boolean-expressions */
 'use client'
 import { Button } from 'flowbite-react'
-import { experimental_useFormState as useFormState, experimental_useFormStatus as useFormStatus } from 'react-dom'
+
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 
 import { postEnergyFile } from '@/actions/energy-form'
 
@@ -22,12 +24,11 @@ const SubmitButton = () => {
 }
 
 const FileUploadForm = () => {
-  const [state, formAction] = useFormState(postEnergyFile, initialState)
+  const [state, formAction] = useActionState(postEnergyFile, initialState)
 
   return (
-    // @ts-expect-error Experimental Form Action
-    <form action={formAction} >
-      <FileUpload required/>
+    <form action={formAction}>
+      <FileUpload required />
       <SubmitButton />
       {state?.message && <p>{state.message}</p>}
     </form>

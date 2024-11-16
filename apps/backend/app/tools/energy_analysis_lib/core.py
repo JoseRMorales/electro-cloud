@@ -267,15 +267,17 @@ def get_results_time_slot_energy() -> list:
 
     # Check csv files in "parsed_hourly" folder
     files = os.listdir(os.path.join(output_path, "parsed_hourly"))
-    analysisIds = []
+    results = []
     for file in files:
         # Check if the file is a csv file
         if file.endswith(".csv"):
             # Remove the extension
             analysisId = file[:-4]
-            analysisIds.append(analysisId)
+            # Get date from the file
+            time = os.path.getctime(os.path.join(output_path, "parsed_hourly", file))
+            results.append({"analysisId": analysisId, "created_at": time})
 
-    return analysisIds
+    return results
 
 
 def delete_results_time_slot_energy_by_id(analysisId: str):
