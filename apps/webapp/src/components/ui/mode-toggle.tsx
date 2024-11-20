@@ -1,38 +1,40 @@
 'use client'
 
-import { IconCircleFilled, IconMoonFilled as Moon, IconSunFilled as Sun } from '@tabler/icons-react'
-import { Button } from 'flowbite-react'
+import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useEffect, useState } from 'react'
+import * as React from 'react'
 
-const ModeToggle = () => {
-  const { theme, setTheme } = useTheme()
-  const [icon, setIcon] = useState<JSX.Element>(<IconCircleFilled />)
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
 
-  // To avoid hydrating errors we should use the Icon element as use state so a default value is sent to the client (Moon) and then when the theme is set by the user or the provider the icon is updated via hydration
-  useEffect(() => {
-    if (theme === 'dark') {
-      setIcon(<Sun />)
-    } else {
-      setIcon(<Moon />)
-    }
-  }, [theme])
+export function ModeToggle () {
+  const { setTheme } = useTheme()
 
   return (
-    <>
-      {theme === 'dark'
-        ? (
-          <Button onClick={() => { setTheme('light') }} size="xs">
-            {icon}
-          </Button>
-          )
-        : (
-          <Button onClick={() => { setTheme('dark') }} size="xs">
-            {icon}
-          </Button>
-          )}
-    </>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="icon">
+          <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+          <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          <span className="sr-only">Toggle theme</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem onClick={() => setTheme('light')}>
+          Light
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('dark')}>
+          Dark
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => setTheme('system')}>
+          System
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
-
-export default ModeToggle

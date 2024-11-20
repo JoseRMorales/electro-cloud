@@ -1,10 +1,10 @@
 'use client'
 
-import { Button, Card } from 'flowbite-react'
-import Link from 'next/link'
-import { useState } from 'react'
-
 import { deleteAnalysis } from '@/actions/energy-form'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+// @ts-ignore
+import { useFormStatus } from 'react-dom'
 
 interface AnalysisCardProps {
   analysisId: string
@@ -12,11 +12,7 @@ interface AnalysisCardProps {
 }
 
 const AnalysisCard = ({ analysisId, created_at }: AnalysisCardProps) => {
-  const [pending, setPending] = useState(false)
-
-  const handleClick = () => {
-    setPending(true)
-  }
+  const { pending } = useFormStatus()
 
   const date = new Date(created_at).toLocaleString('es-ES', {
     timeZone: 'Europe/Madrid'
@@ -24,7 +20,7 @@ const AnalysisCard = ({ analysisId, created_at }: AnalysisCardProps) => {
 
   const deleteAnalysisWithId = deleteAnalysis.bind(null, analysisId)
   return (
-    <Card className="max-w-sm hover:scale-105 transform transition-all duration-200">
+    <div className="max-w-sm hover:scale-105 transform transition-all duration-200 rounded-md p-4 bg-white dark:bg-gray-800 shadow-lg">
       <Link
         href={`/energy/${analysisId}`}
         className="inline-block relative z-10 p-8 -m-8"
@@ -36,17 +32,15 @@ const AnalysisCard = ({ analysisId, created_at }: AnalysisCardProps) => {
       </Link>
       <form action={deleteAnalysisWithId}>
         <Button
+          variant="destructive"
           type="submit"
-          size="xs"
-          color="failure"
-          className="w-full mt-6"
-          onClick={handleClick}
-          isProcessing={pending}
+          className="w-full mt-6 hover:bg-red-600"
+          disabled={pending}
         >
           Delete
         </Button>
       </form>
-    </Card>
+    </div>
   )
 }
 export default AnalysisCard
