@@ -1,7 +1,7 @@
 export default function Home () {
   return (
-    <>
-      <h1>Helo World!!!!</h1>
-    </>
+    <main className="flex flex-col items-center justify-center p-6">
+      <h1 className="text-5xl mb-6">Electro Cloud App</h1>
+    </main>
   )
 }

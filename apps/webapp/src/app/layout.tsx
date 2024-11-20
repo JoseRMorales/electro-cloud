@@ -20,7 +20,7 @@ export default function RootLayout ({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className="bg-slate-50 dark:bg-slate-950 text-foreground">
+      <body className="bg-slate-50 dark:bg-slate-950 text-foreground min-h-screen h-full">
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
