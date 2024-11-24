@@ -42,7 +42,6 @@ const DataTable = ({ data }: DataTableProps) => {
     toast({
       description: 'Copied to clipboard'
     })
-    console.log('Copied to clipboard')
   }
 
   const handleCopyToClipboard = () => {

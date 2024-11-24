@@ -8,7 +8,6 @@ const EnergyAnalysisPage = async ({
 }) => {
   const { analysisId } = await params
   const data = await getEnergyByTimeSlot(analysisId)
-  console.log(data)
 
   return (
     <main className="flex flex-col items-center justify-center p-6 gap-4">

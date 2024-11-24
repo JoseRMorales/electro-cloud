@@ -23,7 +23,6 @@ class SolarAnalysisApi {
 
   async postEnergyFile (formData: FormData): Promise<string> {
     // Extract the file from the FormData object
-    console.log('posting')
     const res = await fetch(`${this.url}/energy/time-slots`, {
       method: 'POST',
       body: formData
@@ -34,7 +33,6 @@ class SolarAnalysisApi {
   }
 
   async getEnergyByTimeSlot (analysisId: string): Promise<string> {
-    console.log('get analysisId', analysisId)
     const res = await fetch(`${this.url}/energy/time-slots/${analysisId}`)
     const data = await res.text()
     return data
