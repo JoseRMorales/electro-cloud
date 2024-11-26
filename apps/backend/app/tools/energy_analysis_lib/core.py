@@ -120,7 +120,10 @@ def get_monthly_consumption_production_plot(analysisId: str) -> bytes:
     """
     try:
         consumption_production_plot = open(
-            os.path.join(PATHS["plots"], f"{analysisId}.png"), "rb"
+            os.path.join(
+                PATHS["plots_consumption_production_chart"], f"{analysisId}.png"
+            ),
+            "rb",
         )
 
     except FileNotFoundError:
@@ -143,9 +146,7 @@ def get_results_monthly_plots(analysisId: str) -> [bytes]:
         for month in range(1, 13):
             results_monthly.append(
                 open(
-                    os.path.join(
-                        PATHS["results"], str(month), "_", f"{analysisId}.png"
-                    ),
+                    os.path.join(PATHS["plots_monthly"], f"{analysisId}_{month}.png"),
                     "rb",
                 )
             )
@@ -300,3 +301,25 @@ def delete_results_time_slot_energy_by_id(analysisId: str):
     message = "The analysis was deleted"
 
     return message
+
+
+def get_solar_analysis() -> list:
+    """
+    Return all the analysisId
+    """
+    # Create the path if it does not exist
+    if not os.path.exists(PATHS["results"]):
+        os.makedirs(PATHS["results"])
+    # Check csv files in "parsed_hourly" folder
+    files = os.listdir(os.path.join(PATHS["results"]))
+    results = []
+    for file in files:
+        # Check if the file is a csv file
+        if file.endswith(".csv"):
+            # Remove the extension
+            analysisId = file[:-4]
+            # Get date from the file
+            time = os.path.getctime(os.path.join(PATHS["results"], file))
+            results.append({"analysisId": analysisId, "created_at": time})
+
+    return results
