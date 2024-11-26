@@ -1,10 +1,8 @@
 import os
-import traceback
 import uuid
 
 import tools.energy_analysis_lib.energy as energy
 import tools.energy_analysis_lib.solar as solar
-import tools.energy_analysis_lib.utils as lib_utils
 import tools.pvgis_api_wrapper as api
 from tools.energy_analysis_lib.energy import (
     parse_consumption_file,
@@ -88,7 +86,7 @@ def get_monthly_production(analysisId: str) -> bytes:
     """
     try:
         production_file = open(
-            PATHS["production"] + "parsed_monthly_" + analysisId + ".csv", "rb"
+            os.path.join(PATHS["production_parsed_monthly"], f"{analysisId}.csv"), "rb"
         )
     except FileNotFoundError:
         logger.error("The production file does not exist")
@@ -105,7 +103,7 @@ def get_monthly_consumption(analysisId: str) -> bytes:
     """
     try:
         consumption_file = open(
-            PATHS["consumption"] + "parsed_monthly_" + analysisId + ".csv", "rb"
+            os.path.join(PATHS["consumption_parsed_monthly"], f"{analysisId}.csv"), "rb"
         )
     except FileNotFoundError:
         logger.error("The consumption file does not exist")
@@ -121,7 +119,10 @@ def get_monthly_consumption_production_plot(analysisId: str) -> bytes:
     :param analysisId: The id of the analysis
     """
     try:
-        consumption_production_plot = open(PATHS["plots"] + analysisId + ".png", "rb")
+        consumption_production_plot = open(
+            os.path.join(PATHS["plots"], f"{analysisId}.png"), "rb"
+        )
+
     except FileNotFoundError:
         logger.error("The consumption vs production plot file does not exist")
         raise FileNotFoundError(
@@ -142,12 +143,9 @@ def get_results_monthly_plots(analysisId: str) -> [bytes]:
         for month in range(1, 13):
             results_monthly.append(
                 open(
-                    PATHS["plots"]
-                    + "results_monthly_"
-                    + analysisId
-                    + "_"
-                    + str(month)
-                    + ".png",
+                    os.path.join(
+                        PATHS["results"], str(month), "_", f"{analysisId}.png"
+                    ),
                     "rb",
                 )
             )
@@ -177,7 +175,7 @@ def get_results_time_slot_solar(analysisId: str) -> bytes:
     """
     try:
         results_time_slot_solar = open(
-            PATHS["outputs"] + "results_time_slot_" + analysisId + ".csv", "rb"
+            os.path.join(PATHS["time_slots"], f"{analysisId}.csv"), "rb"
         )
     except FileNotFoundError:
         logger.error("The time slot results after solar do not exist")
@@ -218,7 +216,6 @@ def process_consumption_file(consumption_file: bytes) -> str:
         return analysisId
     except Exception as e:
         logger.error(e)
-        traceback.print_exc()
         raise e
 
 
@@ -231,22 +228,17 @@ def get_results_time_slot_energy_by_id(analysisId: str) -> bytes:
     # Check if the results exist in output folder
     time_slot_energy_results = None
     try:
-        output_path = lib_utils.output_path
         time_slot_energy_results = open(
-            os.path.join(output_path, "time_slots", f"{analysisId}.csv"), "rb"
+            os.path.join(PATHS["time_slots"], f"{analysisId}.csv"), "rb"
         ).read()
     except FileNotFoundError:
         logger.info("The time slot energy results do not exist, calculating")
 
         hourly = None
         # Check if the hourly consumption file exists
-        try:
-            hourly = open(
-                os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv"), "rb"
-            )
-        except FileNotFoundError:
-            logger.error("The hourly consumption file does not exist")
-            raise FileNotFoundError("The hourly consumption file does not exist")
+        hourly = open(
+            os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"), "rb"
+        )
         # If first row contains a "Generation" column, then it is a solar file
         if "Generation" in hourly.readline().decode("utf-8"):
             time_slot_energy_results = (
@@ -263,10 +255,11 @@ def get_results_time_slot_energy() -> list:
     """
     Return all the analysisId
     """
-    output_path = lib_utils.output_path
-
+    # Create the path if it does not exist
+    if not os.path.exists(PATHS["consumption_parsed_hourly"]):
+        os.makedirs(PATHS["consumption_parsed_hourly"])
     # Check csv files in "parsed_hourly" folder
-    files = os.listdir(os.path.join(output_path, "parsed_hourly"))
+    files = os.listdir(os.path.join(PATHS["consumption_parsed_hourly"]))
     results = []
     for file in files:
         # Check if the file is a csv file
@@ -274,7 +267,9 @@ def get_results_time_slot_energy() -> list:
             # Remove the extension
             analysisId = file[:-4]
             # Get date from the file
-            time = os.path.getctime(os.path.join(output_path, "parsed_hourly", file))
+            time = os.path.getctime(
+                os.path.join(PATHS["consumption_parsed_hourly"], file)
+            )
             results.append({"analysisId": analysisId, "created_at": time})
 
     return results
@@ -286,16 +281,21 @@ def delete_results_time_slot_energy_by_id(analysisId: str):
 
     :param analysisId: The id of the analysis
     """
-    output_path = lib_utils.output_path
     # Delet if exists in folders 'parsed_hourly', 'parsed_monthly' and 'time_slots'
-    if os.path.exists(os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv")):
-        os.remove(os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv"))
+    if os.path.exists(
+        os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv")
+    ):
+        os.remove(os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"))
 
-    if os.path.exists(os.path.join(output_path, "parsed_monthly", f"{analysisId}.csv")):
-        os.remove(os.path.join(output_path, "parsed_monthly", f"{analysisId}.csv"))
+    if os.path.exists(
+        os.path.join(PATHS["consumption_parsed_monthly"], f"{analysisId}.csv")
+    ):
+        os.remove(
+            os.path.join(PATHS["consumption_parsed_monthly"], f"{analysisId}.csv")
+        )
 
-    if os.path.exists(os.path.join(output_path, "time_slots", f"{analysisId}.csv")):
-        os.remove(os.path.join(output_path, "time_slots", f"{analysisId}.csv"))
+    if os.path.exists(os.path.join(PATHS["time_slots"], f"{analysisId}.csv")):
+        os.remove(os.path.join(PATHS["time_slots"], f"{analysisId}.csv"))
 
     message = "The analysis was deleted"
 

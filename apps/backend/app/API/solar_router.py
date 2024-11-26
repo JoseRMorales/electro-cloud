@@ -47,7 +47,7 @@ async def process(
             consumption_file, location, peakpower, mountingplace, loss, angle, aspect
         )
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         # Return 500 error
         raise HTTPException(status_code=500, detail=str(e))
 

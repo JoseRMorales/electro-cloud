@@ -1,18 +1,19 @@
-import requests
 import json
 import logging
-from dotenv import load_dotenv
 import os
+
+import requests
+from dotenv import load_dotenv
+
+from .energy_analysis_lib.constants import PATHS
 
 load_dotenv()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
-locations_path = "Tools/locations/"
-locations_cache = "Tools/locations/locations.json"
-production_path = "Tools/production/"
-production_monthly_cache = "Tools/production/monthly.json"
-production_hourly_cache = "Tools/production/hourly.json"
+locations_cache = os.path.join(PATHS["locations"], "locations.json")
+production_monthly_cache = os.path.join(PATHS["production"], "monthly.json")
+production_hourly_cache = os.path.join(PATHS["production"], "hourly.json")
 
 
 def get_coordinates(location: str) -> (str, str):
@@ -22,6 +23,9 @@ def get_coordinates(location: str) -> (str, str):
     :param locations: location to get the coordinates
     :return: latitude and longitude of the location
     """
+    # Create the locations folder if it does not exist
+    if not os.path.exists(PATHS["locations"]):
+        os.makedirs(PATHS["locations"])
 
     # Load the locations saved or create the file
     try:
@@ -93,6 +97,10 @@ def get_monthly_production(
     # Get the coordinates of the location
     latitude, longitude = get_coordinates(location)
 
+    # Create the production folder if it does not exist
+    if not os.path.exists(PATHS["production"]):
+        os.makedirs(PATHS["production"])
+
     # Load the production saved or create the file
     try:
         with open(production_monthly_cache, "r") as f:
@@ -137,8 +145,12 @@ def get_monthly_production(
     with open(production_monthly_cache, "w") as f:
         json.dump(production_dict, f)
 
+    # Create directory if it does not exist
+    if not os.path.exists(PATHS["production_monthly"]):
+        os.makedirs(PATHS["production_monthly"])
+
     # Save the production in a file
-    with open(production_path + "monthly_" + analysisId + ".csv", "w") as f:
+    with open(os.path.join(PATHS["production_monthly"], analysisId + ".csv"), "w") as f:
         f.write(response.text)
 
     logging.info("Production found in API")
@@ -168,6 +180,10 @@ def get_hourly_production(
     """
     # Get the coordinates of the location
     latitude, longitude = get_coordinates(location)
+
+    # Create the production folder if it does not exist
+    if not os.path.exists(PATHS["production"]):
+        os.makedirs(PATHS["production"])
 
     # Load the production saved or create the file
     try:
@@ -216,9 +232,14 @@ def get_hourly_production(
     with open(production_hourly_cache, "w") as f:
         json.dump(production_dict, f)
 
+    # Create directory if it does not exist
+    if not os.path.exists(PATHS["production_hourly"]):
+        os.makedirs(PATHS["production_hourly"])
+
     # Save the production in a file
-    with open(production_path + "hourly_" + analysisId + ".csv", "w") as f:
+    with open(os.path.join(PATHS["production_hourly"], analysisId + ".csv"), "w") as f:
         f.write(response.text)
+        logging.info("Written hourly production to file")
 
     logging.info("Production found in API")
     return

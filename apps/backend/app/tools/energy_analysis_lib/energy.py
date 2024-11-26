@@ -5,7 +5,7 @@ import pandas as pd
 from tools.energy_analysis_lib import utils as lib_utils
 from tools.utils import logger
 
-from .constants import TIME_SLOTS
+from .constants import PATHS, TIME_SLOTS
 
 
 def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
@@ -65,11 +65,15 @@ def parse_consumption_file(csv_file: bytes, analysisId: str) -> None:
     df = df[df["Hour"] != 25]
 
     # Save the dataframe as a csv file
-    hourly_csv = lib_utils.save_csv_file("parsed_hourly", analysisId, df)
+    hourly_csv = lib_utils.save_csv_file(
+        PATHS["consumption_parsed_hourly"], analysisId, df
+    )
     logger.info(f"Written file {hourly_csv}")
 
     # Save the monthly dataframe as a csv file
-    monthly_csv = lib_utils.save_csv_file("parsed_monthly", analysisId, df_monthly)
+    monthly_csv = lib_utils.save_csv_file(
+        PATHS["consumption_parsed_monthly"], analysisId, df_monthly
+    )
     logger.info(f"Written file {monthly_csv}")
 
 
@@ -134,11 +138,15 @@ def parse_consumption_file_with_generation(csv_file: bytes, analysisId: str) -> 
     df = df[df["Hour"] != 25]
 
     # Save the dataframe as a csv file
-    saved_path = lib_utils.save_csv_file("parsed_hourly", analysisId, df)
+    saved_path = lib_utils.save_csv_file(
+        PATHS["consumption_parsed_hourly"], analysisId, df
+    )
     logger.info(f"Written file {saved_path}")
 
     # Save the monthly dataframe as a csv file
-    saved_path = lib_utils.save_csv_file("parsed_monthly", analysisId, df_monthly)
+    saved_path = lib_utils.save_csv_file(
+        PATHS["consumption_parsed_monthly"], analysisId, df_monthly
+    )
     logger.info(f"Written file {saved_path}")
 
 
@@ -150,11 +158,10 @@ def process_results_time_slot_energy(analysisId: str) -> bytes:
     :return: CSV file with the results
     """
     logger.info("Calculating time slot energy results")
-    output_path = lib_utils.output_path
     hourly_file = None
     try:
         hourly_file = open(
-            os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv"), "rb"
+            os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"), "rb"
         )
 
     except FileNotFoundError:
@@ -172,7 +179,7 @@ def process_results_time_slot_energy(analysisId: str) -> bytes:
     # TODO: Datetime 2022???
     df["Datetime"] = df.apply(
         lambda x: datetime.datetime(
-            2022, int(x["Month"]), int(x["Day"]), int(x["Hour"] - 1)
+            2024, int(x["Month"]), int(x["Day"]), int(x["Hour"] - 1)
         ),
         axis=1,
     )
@@ -233,7 +240,7 @@ def process_results_time_slot_energy(analysisId: str) -> bytes:
     )
 
     # Save the results
-    results_path = lib_utils.save_csv_file("time_slots", analysisId, df)
+    results_path = lib_utils.save_csv_file(PATHS["time_slots"], analysisId, df)
     logger.info(f"Written file {results_path}")
 
     results_csv = lib_utils.save_csv_to_variable(df)
@@ -249,11 +256,10 @@ def process_results_time_slot_energy_with_generation(analysisId: str) -> bytes:
     :return: CSV file with the results
     """
     logger.info("Calculating time slot energy results")
-    output_path = lib_utils.output_path
     hourly_file = None
     try:
         hourly_file = open(
-            os.path.join(output_path, "parsed_hourly", f"{analysisId}.csv"), "rb"
+            os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"), "rb"
         )
 
     except FileNotFoundError:
@@ -271,7 +277,7 @@ def process_results_time_slot_energy_with_generation(analysisId: str) -> bytes:
     # TODO: Datetime 2022???
     df["Datetime"] = df.apply(
         lambda x: datetime.datetime(
-            2022, int(x["Month"]), int(x["Day"]), int(x["Hour"] - 1)
+            2024, int(x["Month"]), int(x["Day"]), int(x["Hour"] - 1)
         ),
         axis=1,
     )
@@ -331,7 +337,7 @@ def process_results_time_slot_energy_with_generation(analysisId: str) -> bytes:
     )
 
     # Save the results
-    results_path = lib_utils.save_csv_file("time_slots", analysisId, df)
+    results_path = lib_utils.save_csv_file(PATHS["time_slots"], analysisId, df)
     logger.info(f"Written file {results_path}")
 
     results_csv = lib_utils.save_csv_to_variable(df)

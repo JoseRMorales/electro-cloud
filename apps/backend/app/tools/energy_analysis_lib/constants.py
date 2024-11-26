@@ -1,3 +1,5 @@
+import os
+
 TIME_SLOTS = {
     "nocturna": {
         "Valle": [(1, 8)],  # 00:00 - 07:59
@@ -22,9 +24,30 @@ TIME_SLOTS = {
     },
 }
 
+output_path = os.environ.get("OUTPUT_PATH", "output")
+
 PATHS = {
-    "consumption": "./tools/data/consumption/",
-    "production": "./tools/data/production/",
-    "plots": "./tools/data/plots/",
-    "output": "./tools/data/output/",
+    "consumption": os.path.join(output_path, "consumption"),
+    "production": os.path.join(output_path, "production"),
+    "plots": os.path.join(output_path, "plots"),
+    "results": os.path.join(output_path, "results"),
+    "time_slots": os.path.join(output_path, "time_slots"),
+    "locations": os.path.join(output_path, "locations"),
 }
+
+PATHS["consumption_parsed_hourly"] = os.path.join(PATHS["consumption"], "parsed_hourly")
+
+PATHS["consumption_parsed_monthly"] = os.path.join(
+    PATHS["consumption"], "parsed_monthly"
+)
+
+PATHS["production_parsed_hourly"] = os.path.join(PATHS["production"], "parsed_hourly")
+
+PATHS["production_parsed_monthly"] = os.path.join(PATHS["production"], "parsed_monthly")
+PATHS["production_hourly"] = os.path.join(PATHS["production"], "hourly")
+PATHS["production_monthly"] = os.path.join(PATHS["production"], "monthly")
+PATHS["results_self_consumption"] = os.path.join(PATHS["results"], "self_consumption")
+PATHS["plots_consumption_production_chart"] = os.path.join(
+    PATHS["plots"], "consumption_production_chart"
+)
+PATHS["plots_monthly"] = os.path.join(PATHS["plots"], "monthly")

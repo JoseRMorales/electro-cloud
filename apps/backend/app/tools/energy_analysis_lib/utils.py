@@ -4,8 +4,6 @@ import os
 
 import pandas as pd
 
-output_path = os.environ.get("OUTPUT_PATH", "./output")
-
 
 def is_within_time_slot(
     hour: int,
@@ -74,11 +72,11 @@ def save_csv_file(path: str, analysisId: str, df: pd.DataFrame) -> str:
     """
 
     # Create the path if it does not exist
-    if not os.path.exists(os.path.join(output_path, path)):
-        os.makedirs(os.path.join(output_path, path))
+    if not os.path.exists(path):
+        os.makedirs(path)
 
     # Save the CSV data to a file
-    save_path = os.path.join(output_path, path, f"{analysisId}.csv")
+    save_path = os.path.join(path, f"{analysisId}.csv")
     df.to_csv(save_path, index=False, sep=";", decimal=",", encoding="UTF-8")
 
     return str(save_path)

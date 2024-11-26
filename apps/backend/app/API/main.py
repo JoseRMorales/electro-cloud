@@ -8,7 +8,7 @@ from .solar_router import router as solar_router
 
 app = FastAPI()
 
-origins = ["*"]
+origins = ["localhost"]
 
 app.add_middleware(
     CORSMiddleware,
