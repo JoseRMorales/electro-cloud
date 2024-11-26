@@ -2,9 +2,8 @@
 
 import { deleteAnalysis } from '@/actions/energy-form'
 import { Button } from '@/components/ui/button'
-import Link from 'next/link'
-// @ts-ignore
 import { type apiType } from '@/types/types'
+import Link from 'next/link'
 import { useFormStatus } from 'react-dom'
 
 interface AnalysisCardProps {

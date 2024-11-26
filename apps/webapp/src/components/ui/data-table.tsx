@@ -15,9 +15,10 @@ import { useEffect, useState } from 'react'
 
 interface DataTableProps {
   data: string
+  clipboard?: boolean
 }
 
-const DataTable = ({ data }: DataTableProps) => {
+const DataTable = ({ data, clipboard = true }: DataTableProps) => {
   const { toast } = useToast()
   const [commaSeparator, setCommaSeparator] = useState(false)
   const [formattedData, setFormattedData] = useState(data)
@@ -138,41 +139,43 @@ const DataTable = ({ data }: DataTableProps) => {
           </TableBody>
         </Table>
       </article>
-      <aside className="flex flex-col gap-16 p-4">
-        <div className="flex justify-center gap-16">
-          <Button onClick={handleCopyToClipboard}>
-            Copy to clipboard
-            <IconClipboard className="ml-2" />
-          </Button>
-          <Button
-            onClick={() => {
-              setCommaSeparator(!commaSeparator)
-            }}
-          >
-            {commaSeparator
-              ? 'Use dot as decimal separator'
-              : 'Use comma as decimal separator'}
-          </Button>
-        </div>
-        <div className="flex justify-between gap-16">
-          <Button onClick={handleCopyFirstGroup}>
-            Copy first group
-            <IconClipboard className="ml-2" />
-          </Button>
-          <Button onClick={handleCopySecondGroup}>
-            Copy second group
-            <IconClipboard className="ml-2" />
-          </Button>
-          <Button onClick={handleCopyThirdGroup}>
-            Copy third group
-            <IconClipboard className="ml-2" />
-          </Button>
-          <Button onClick={handleCopyFourthGroup}>
-            Copy fourth group
-            <IconClipboard className="ml-2" />
-          </Button>
-        </div>
-      </aside>
+      {clipboard && (
+        <aside className="flex flex-col gap-16 p-4">
+          <div className="flex justify-center gap-16">
+            <Button onClick={handleCopyToClipboard}>
+              Copy to clipboard
+              <IconClipboard className="ml-2" />
+            </Button>
+            <Button
+              onClick={() => {
+                setCommaSeparator(!commaSeparator)
+              }}
+            >
+              {commaSeparator
+                ? 'Use dot as decimal separator'
+                : 'Use comma as decimal separator'}
+            </Button>
+          </div>
+          <div className="flex justify-between gap-16">
+            <Button onClick={handleCopyFirstGroup}>
+              Copy first group
+              <IconClipboard className="ml-2" />
+            </Button>
+            <Button onClick={handleCopySecondGroup}>
+              Copy second group
+              <IconClipboard className="ml-2" />
+            </Button>
+            <Button onClick={handleCopyThirdGroup}>
+              Copy third group
+              <IconClipboard className="ml-2" />
+            </Button>
+            <Button onClick={handleCopyFourthGroup}>
+              Copy fourth group
+              <IconClipboard className="ml-2" />
+            </Button>
+          </div>
+        </aside>
+      )}
     </>
   )
 }

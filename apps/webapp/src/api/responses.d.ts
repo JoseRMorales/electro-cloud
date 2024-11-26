@@ -22,3 +22,8 @@ export interface GetAllResultsTimeSlotsResults {
 export interface DeleteAnalysisResponse {
   message: string
 }
+
+export interface SelfPercentRatiosResponse {
+  monthly_ratios: number[]
+  average: number
+}
