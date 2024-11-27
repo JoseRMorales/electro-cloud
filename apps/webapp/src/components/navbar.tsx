@@ -14,7 +14,6 @@ export default function Navbar () {
   const toggleMenu = () => setIsOpen(!isOpen)
 
   const navItems = [
-    { name: 'Home', href: '/' },
     { name: 'Energy', href: '/energy' },
     { name: 'Solar', href: '/solar' }
   ]

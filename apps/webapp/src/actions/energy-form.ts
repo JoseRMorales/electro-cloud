@@ -28,3 +28,9 @@ export const deleteAnalysis = async (
 
   revalidatePath('/energy')
 }
+
+export const postSolarForm = async (prevState: any, formData: FormData) => {
+  const api = new SolarAnalysisApi()
+  const analysisId = await api.postSolarForm(formData)
+  revalidatePath('/solar')
+}

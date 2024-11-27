@@ -1,9 +1,7 @@
 'use client'
 import { Button } from '@/components/ui/button'
 
-// @ts-ignore
 import { useActionState } from 'react'
-// @ts-ignore
 import { useFormStatus } from 'react-dom'
 
 import { postEnergyFile } from '@/actions/energy-form'

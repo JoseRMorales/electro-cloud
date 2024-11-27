@@ -110,6 +110,16 @@ class SolarAnalysisApi {
     const data = await res.text()
     return data
   }
+
+  async postSolarForm (formData: FormData): Promise<string> {
+    const res = await fetch(`${this.url}/solar/process-file`, {
+      method: 'POST',
+      body: formData
+    })
+    const data = (await res.json()) as EnergyProcessFileResponse
+    const { analysisId } = data
+    return analysisId
+  }
 }
 
 export default SolarAnalysisApi
