@@ -2,8 +2,6 @@ name: ci
 on:
   push:
     branches: [ "docker" ]
-  pull_request:
-    branches: [ "docker" ]
 
 env:
   REGISTRY: ghcr.io
