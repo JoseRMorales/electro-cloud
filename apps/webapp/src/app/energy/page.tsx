@@ -9,8 +9,7 @@ const EnergyPage = () => {
     <main className="flex flex-col items-center justify-center p-6 gap-4">
       <h1 className="text-5xl">Energy</h1>
       <FileUploadForm />
-      {/* @ts-expect-error Server Component */}
-      <AnalysisCardGrid />
+      <AnalysisCardGrid api="energy" />
     </main>
   )
 }

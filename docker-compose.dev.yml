@@ -3,20 +3,24 @@ version: "3"
 services:
   webapp:
     container_name: webapp
-    image: ghcr.io/josera9/electro-cloud-webapp:docker
-    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./apps/webapp/Dockerfile
+    restart: always
     ports:
-      - 3000:3000
+      - 3100:3000
     networks:
       - app_network
     env_file:
       - ./apps/webapp/.env
   api:
     container_name: api
-    image: ghcr.io/josera9/electro-cloud-api:docker
-    restart: unless-stopped
+    build:
+      context: .
+      dockerfile: ./apps/backend/Dockerfile
+    restart: always
     ports:
-      - 8001:80
+      - 8101:80
     networks:
       - app_network
     env_file:

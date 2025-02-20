@@ -1,10 +1,10 @@
-from fastapi import File, Form, UploadFile, HTTPException, Response, APIRouter
-from tools.utils import logger
-from typing import Annotated
-from io import StringIO, BytesIO
-from tools.energy_analysis_lib import core
 import zipfile
+from io import BytesIO, StringIO
+from typing import Annotated
 
+from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
+from tools.energy_analysis_lib import core
+from tools.utils import logger
 
 router = APIRouter()
 
@@ -47,7 +47,7 @@ async def process(
             consumption_file, location, peakpower, mountingplace, loss, angle, aspect
         )
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         # Return 500 error
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -55,7 +55,7 @@ async def process(
     return {"analysisId": analysisId}
 
 
-@router.get("/api/monthly_production/{analysisId}")
+@router.get("/monthly_production/{analysisId}")
 def monthly_production(analysisId: str):
     """
     Get the monthly production of the analysisId
@@ -78,7 +78,7 @@ def monthly_production(analysisId: str):
     return Response(content=production, media_type="text/csv", headers=headers)
 
 
-@router.get("/api/monthly_consumption/{analysisId}")
+@router.get("/monthly_consumption/{analysisId}")
 def monthly_consumption(analysisId: str):
     """
     Get the monthly consumption of the analysisId
@@ -101,7 +101,7 @@ def monthly_consumption(analysisId: str):
     return Response(content=consumption, media_type="text/csv", headers=headers)
 
 
-@router.get("/api/monthly_consumption_production_plot/{analysisId}")
+@router.get("/monthly_consumption_production_plot/{analysisId}")
 def monthly_consumption_production_plot(analysisId: str):
     """
     Get the monthly consumption and production plot of the analysisId
@@ -127,7 +127,7 @@ def monthly_consumption_production_plot(analysisId: str):
     return Response(content=plot, media_type="image/png", headers=headers)
 
 
-@router.get("/api/results_monthly_plots/{analysisId}")
+@router.get("/results_monthly_plots/{analysisId}")
 def results_monthly_plots(analysisId: str):
     """
     Get the monthly plots of the analysisId
@@ -162,7 +162,7 @@ def results_monthly_plots(analysisId: str):
     )
 
 
-@router.get("/api/self_percent_ratios/{analysisId}")
+@router.get("/self_percent_ratios/{analysisId}")
 def self_percent_ratios(analysisId: str):
     """
     Get the self percent ratios of the analysisId
@@ -183,7 +183,7 @@ def self_percent_ratios(analysisId: str):
     return ratios
 
 
-@router.get("/api/results_time_slot_solar/{analysisId}")
+@router.get("/results_time_slot_solar/{analysisId}")
 def results_time_slot_solar(analysisId: str):
     """
     Get the time slot solar of the analysisId
@@ -208,27 +208,22 @@ def results_time_slot_solar(analysisId: str):
     return Response(content=solar, media_type="text/csv", headers=headers)
 
 
-@router.get("/energy-time-slot/{analysisId}")
-def get_results_time_slot_energy(analysisId: str) -> bytes:
+@router.get("/analysis")
+def get_analysis():
     """
-    Return the time slot energy results to the api.
+    Get all the analysis
 
-    :param analysisId: The id of the analysis
+    :return: list of analysis
     """
-    logger.info("GET /api/energy/consumption-time-slot")
+    logger.info("Processing request")
+
     try:
-        time_slot_energy_results = core.get_results_time_slot_energy(analysisId)
-    # TODO: Better exception handling
+        analysis = core.get_solar_analysis()
     except Exception as e:
         logger.error(e)
-        logger.error("The time slot energy results do not exist")
-        raise FileNotFoundError("The time slot energy results do not exist")
-
-    headers = {
-        "Content-Disposition": 'attachment; filename="results_time_slot_energy.csv"'
-    }
+        # Return 500 error
+        raise HTTPException(status_code=500, detail=str(e))
 
     logger.info("Request processed")
-    return Response(
-        content=time_slot_energy_results, headers=headers, media_type="text/csv"
-    )
+    response = {"results": analysis}
+    return response

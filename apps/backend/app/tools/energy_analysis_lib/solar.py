@@ -1,13 +1,17 @@
-import pandas as pd
+import datetime
 import logging
+import os
+
+import numpy as np
+import pandas as pd
 import tools.pvgis_api_wrapper as api
 from matplotlib import pyplot as plt
-import numpy as np
-import datetime
-from .constants import TIME_SLOTS, PATHS
-from .utils import is_within_time_slot
-from .energy import process_results_time_slot_energy
+from tools.energy_analysis_lib import utils as lib_utils
 from tools.utils import logger
+
+from .constants import PATHS, TIME_SLOTS
+from .energy import process_results_time_slot_energy
+from .utils import is_within_time_slot
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
@@ -23,7 +27,7 @@ def parse_monthly_production_file(analysisId: str) -> None:
 
     # Import the csv file as a pandas dataframe
     df = pd.read_csv(
-        PATHS["production"] + "monthly_" + analysisId + ".csv",
+        os.path.join(PATHS["production_monthly"], f"{analysisId}.csv"),
         sep="\t",
         decimal=".",
         thousands=",",
@@ -40,14 +44,10 @@ def parse_monthly_production_file(analysisId: str) -> None:
     df = df.rename(columns={"E_m": "Energy"})
 
     # Save the dataframe as a csv file
-    df.to_csv(
-        PATHS["production"] + "parsed_monthly_" + analysisId + ".csv",
-        index=False,
-        sep=";",
-        decimal=",",
-        encoding="UTF-8",
+    saved_path = lib_utils.save_csv_file(
+        PATHS["production_parsed_monthly"], analysisId, df
     )
-    logger.info("File saved")
+    logger.info(f"Written file {saved_path}")
 
 
 def parse_hourly_production_file(analysisId: str) -> None:
@@ -60,12 +60,12 @@ def parse_hourly_production_file(analysisId: str) -> None:
     """
 
     # Count file lines
-    with open(PATHS["production"] + "hourly_" + analysisId + ".csv", "r") as f:
+    with open(os.path.join(PATHS["production_hourly"], f"{analysisId}.csv"), "r") as f:
         n_lines = sum(1 for line in f)
 
     # Import the csv file as a pandas dataframe
     df = pd.read_csv(
-        PATHS["production"] + "hourly_" + analysisId + ".csv",
+        os.path.join(PATHS["production_hourly"], f"{analysisId}.csv"),
         sep=",",
         decimal=".",
         thousands=",",
@@ -100,14 +100,10 @@ def parse_hourly_production_file(analysisId: str) -> None:
     df = df[~((df["Month"] == 2) & (df["Day"] == 29))]
 
     # Save the dataframe as a csv file
-    df.to_csv(
-        PATHS["production"] + "parsed_hourly_" + analysisId + ".csv",
-        index=False,
-        sep=";",
-        decimal=",",
-        encoding="UTF-8",
+    saved_path = lib_utils.save_csv_file(
+        PATHS["production_parsed_hourly"], analysisId, df
     )
-    logger.info("File saved")
+    logger.info(f"Written file {saved_path}")
 
 
 def consumption_production_chart(
@@ -135,7 +131,7 @@ def consumption_production_chart(
     # Load the consumption data
     try:
         df_consumption = pd.read_csv(
-            PATHS["consumption"] + "parsed_monthly_" + analysisId + ".csv",
+            os.path.join(PATHS["consumption_parsed_monthly"], f"{analysisId}.csv"),
             sep=";",
             decimal=",",
             thousands=".",
@@ -148,7 +144,7 @@ def consumption_production_chart(
     # Load the production data
     try:
         df_production = pd.read_csv(
-            PATHS["production"] + "parsed_monthly_" + analysisId + ".csv",
+            os.path.join(PATHS["production_parsed_monthly"], f"{analysisId}.csv"),
             sep=";",
             decimal=",",
             thousands=".",
@@ -166,7 +162,7 @@ def consumption_production_chart(
         )
         parse_monthly_production_file(analysisId)
         df_production = pd.read_csv(
-            PATHS["production"] + "parsed_monthly_" + analysisId + ".csv",
+            os.path.join(PATHS["production_parsed_monthly"], f"{analysisId}.csv"),
             sep=";",
             decimal=",",
             thousands=".",
@@ -192,7 +188,13 @@ def consumption_production_chart(
     plt.title("Consumption and production")
     plt.legend(["Consumption", "Production"])
     plt.gcf().set_size_inches(10, 5)
-    plt.savefig(PATHS["plots"] + analysisId + ".png", dpi=100)
+    # Create the path if it does not exist
+    if not os.path.exists(PATHS["plots_consumption_production_chart"]):
+        os.makedirs(PATHS["plots_consumption_production_chart"])
+    plt.savefig(
+        os.path.join(PATHS["plots_consumption_production_chart"], f"{analysisId}.png"),
+        dpi=100,
+    )
 
     # Clear the plot
     plt.clf()
@@ -211,7 +213,7 @@ def get_self_consumption_ratio(analysisId: str) -> (list[float], float):
     # Load the consumption data
     try:
         df_consumption = pd.read_csv(
-            PATHS["consumption"] + "parsed_hourly_" + analysisId + ".csv",
+            os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"),
             sep=";",
             decimal=",",
             thousands=".",
@@ -224,7 +226,7 @@ def get_self_consumption_ratio(analysisId: str) -> (list[float], float):
     # Load the production data
     try:
         df_production = pd.read_csv(
-            PATHS["production"] + "parsed_hourly_" + analysisId + ".csv",
+            os.path.join(PATHS["production_parsed_hourly"], f"{analysisId}.csv"),
             sep=";",
             decimal=",",
             thousands=".",
@@ -274,17 +276,12 @@ def get_self_consumption_ratio(analysisId: str) -> (list[float], float):
     ).round(2)
 
     # Save the dataframe as a csv file
-    df.to_csv(
-        PATHS["output"] + "self_consumption_ratio_" + analysisId + ".csv",
-        index=False,
-        sep=";",
-        decimal=",",
-        encoding="UTF-8",
+    saved_path = lib_utils.save_csv_file(
+        PATHS["results_self_consumption"], analysisId, df
     )
-    logger.info("File saved")
+    logger.info(f"Written file {saved_path}")
 
     self_consumption_avg = df["Self_consumption_ratio"].mean()
-
     # Return the self consumption ratio and the average
     return df["Self_consumption_ratio"].tolist(), self_consumption_avg
 
@@ -300,7 +297,7 @@ def process_results_time_slot_solar(analysisId: str) -> None:
     # Load the consumption data
     try:
         df_consumption = pd.read_csv(
-            PATHS["consumption"] + "parsed_hourly_" + analysisId + ".csv",
+            os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"),
             sep=";",
             decimal=",",
             thousands=".",
@@ -313,7 +310,7 @@ def process_results_time_slot_solar(analysisId: str) -> None:
     # Load the production data
     try:
         df_production = pd.read_csv(
-            PATHS["production"] + "parsed_hourly_" + analysisId + ".csv",
+            os.path.join(PATHS["production_parsed_hourly"], f"{analysisId}.csv"),
             sep=";",
             decimal=",",
             thousands=".",
@@ -350,11 +347,14 @@ def process_results_time_slot_solar(analysisId: str) -> None:
         df["Energy_consumption"] - df["Energy_production"],
     )
 
+    # Remove row with hour 24 (because of daylight saving time)
+    df = df[df["Hour"] != 24]
+
     # Create datetime column
     # TODO: Datetime 2022???
     df["Datetime"] = df.apply(
         lambda x: datetime.datetime(
-            2022, int(x["Month"]), int(x["Day"]), int(x["Hour"])
+            2024, int(x["Month"]), int(x["Day"]), int(x["Hour"])
         ),
         axis=1,
     )
@@ -418,17 +418,10 @@ def process_results_time_slot_solar(analysisId: str) -> None:
     )
 
     # Save the results
-    df.to_csv(
-        PATHS["output"] + "results_time_slot_" + analysisId + ".csv",
-        sep=";",
-        decimal=".",
-        encoding="UTF-8",
-    )
-
-    logger.info("Self consumption results saved")
+    saved_path = lib_utils.save_csv_file(PATHS["time_slots"], analysisId, df)
+    logger.info(f"Written file {saved_path}")
 
     process_results_time_slot_energy(analysisId)
-
     logger.info("Consumption results saved")
 
 
@@ -445,7 +438,7 @@ def plot_self_consumption_monthly(analysisId: str) -> None:
     # Load the consumption data
     try:
         df_consumption = pd.read_csv(
-            PATHS["consumption"] + "parsed_hourly_" + analysisId + ".csv",
+            os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"),
             sep=";",
             decimal=",",
             encoding="UTF-8",
@@ -457,7 +450,7 @@ def plot_self_consumption_monthly(analysisId: str) -> None:
     # Load the production data
     try:
         df_production = pd.read_csv(
-            PATHS["production"] + "parsed_hourly_" + analysisId + ".csv",
+            os.path.join(PATHS["production_parsed_hourly"], f"{analysisId}.csv"),
             sep=";",
             decimal=",",
             encoding="UTF-8",
@@ -499,13 +492,8 @@ def plot_self_consumption_monthly(analysisId: str) -> None:
     df = df[["Month", "Hour", "Energy_consumption", "Energy_production"]]
 
     # Export the data
-    df.to_csv(
-        PATHS["output"] + "results_monthly_" + analysisId + ".csv",
-        sep=";",
-        decimal=".",
-        encoding="UTF-8",
-    )
-    logger.info("Monthly results saved")
+    saved_path = lib_utils.save_csv_file(PATHS["results"], analysisId, df)
+    logger.info(f"Written file {saved_path}")
 
     # Plot the results for each month
     for month in range(1, 13):
@@ -520,9 +508,10 @@ def plot_self_consumption_monthly(analysisId: str) -> None:
         )
         # Wider plot
         plt.gcf().set_size_inches(15, 8)
-        plt.savefig(
-            PATHS["plots"] + "results_monthly_" + analysisId + "_" + str(month) + ".png"
-        )
+        # Create the path if it does not exist
+        if not os.path.exists(PATHS["plots_monthly"]):
+            os.makedirs(PATHS["plots_monthly"])
+        plt.savefig(os.path.join(PATHS["plots_monthly"], f"{analysisId}_{month}.png"))
         plt.close()
 
     logger.info("Monthly plots saved")

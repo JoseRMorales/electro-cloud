@@ -1,6 +1,7 @@
 'use client'
 
-import { FileInput, Label } from 'flowbite-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 interface FileUploadProps {
   required?: boolean
@@ -8,21 +9,14 @@ interface FileUploadProps {
 
 const FileUpload = ({ required = false }: FileUploadProps) => {
   return (
-    <div
-      className="max-w-md"
-      id="fileUpload"
-    >
-      <div className="mb-2 block">
-        <Label
-          htmlFor="consumption_file"
-          value="Upload file"
-        />
-      </div>
-      <FileInput
-        helperText="Select file"
+    <div className="grid w-full max-w-sm items-center gap-1.5">
+      <Label htmlFor="consumption_file">Upload file</Label>
+      <Input
         id="consumption_file"
         name="consumption_file"
-        required
+        required={required}
+        type="file"
+        placeholder="Upload file"
       />
     </div>
   )

@@ -1,8 +1,13 @@
 import { getEnergyByTimeSlot } from '@/actions/energy-form'
 import DataTable from '@/components/ui/data-table'
 
-const EnergyAnalysisPage = async ({ params }: { params: { analysisId: string } }) => {
-  const data = await getEnergyByTimeSlot(params.analysisId)
+const EnergyAnalysisPage = async ({
+  params
+}: {
+  params: Promise<{ analysisId: string }>
+}) => {
+  const { analysisId } = await params
+  const data = await getEnergyByTimeSlot(analysisId)
 
   return (
     <main className="flex flex-col items-center justify-center p-6 gap-4">

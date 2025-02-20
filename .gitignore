@@ -201,3 +201,8 @@ cython_debug/
 *.csv
 *.png
 *.cache.json
+
+# Ruff
+.ruff_cache/
+
+output/

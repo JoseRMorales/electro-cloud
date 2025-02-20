@@ -17,11 +17,13 @@ export interface GetAllResultsTimeSlotsResponse {
 export interface GetAllResultsTimeSlotsResults {
   analysisId: string
   created_at: string
-  name: null
-  holder: null
-  analysis_time_slots: boolean
 }
 
 export interface DeleteAnalysisResponse {
   message: string
+}
+
+export interface SelfPercentRatiosResponse {
+  monthly_ratios: number[]
+  average: number
 }

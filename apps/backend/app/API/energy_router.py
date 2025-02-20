@@ -1,9 +1,9 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Response
-
-from typing import Annotated
-from tools.utils import logger
-from tools.energy_analysis_lib import core
 from io import StringIO
+from typing import Annotated
+
+from fastapi import APIRouter, File, HTTPException, Response, UploadFile
+from tools.energy_analysis_lib import core
+from tools.utils import logger
 
 router = APIRouter()
 
@@ -92,6 +92,5 @@ def get_results_time_slots_energy() -> dict:
         logger.error("The time slot energy results do not exist")
         return Response(status_code=404)
 
-    print(results_list)
     response = {"results": results_list}
     return response

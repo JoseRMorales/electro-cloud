@@ -1,7 +1,8 @@
-/* eslint-disable @typescript-eslint/strict-boolean-expressions */
 'use client'
-import { Button } from 'flowbite-react'
-import { experimental_useFormState as useFormState, experimental_useFormStatus as useFormStatus } from 'react-dom'
+import { Button } from '@/components/ui/button'
+
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 
 import { postEnergyFile } from '@/actions/energy-form'
 
@@ -15,19 +16,18 @@ const SubmitButton = () => {
   const { pending } = useFormStatus()
 
   return (
-    <Button type="submit" isProcessing={pending} size="xs">
+    <Button type="submit" disabled={pending}>
       Submit
     </Button>
   )
 }
 
 const FileUploadForm = () => {
-  const [state, formAction] = useFormState(postEnergyFile, initialState)
+  const [state, formAction] = useActionState(postEnergyFile, initialState)
 
   return (
-    // @ts-expect-error Experimental Form Action
-    <form action={formAction} >
-      <FileUpload required/>
+    <form action={formAction} className="flex flex-col gap-4">
+      <FileUpload required />
       <SubmitButton />
       {state?.message && <p>{state.message}</p>}
     </form>
