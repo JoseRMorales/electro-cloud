@@ -3,7 +3,7 @@ import {
   getSolarMonthlyConsumption,
   getSolarMonthlyPlots,
   getSolarMonthlyProduction,
-  getSolarSelfPercentRatios
+  getSolarSelfPercentRatios,
 } from '@/actions/solar-form'
 import DataTable from '@/components/ui/data-table'
 import {
@@ -13,11 +13,11 @@ import {
   TableFooter,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table'
 
 const EnergyAnalysisPage = async ({
-  params
+  params,
 }: {
   params: Promise<{ analysisId: string }>
 }) => {
@@ -39,7 +39,7 @@ const EnergyAnalysisPage = async ({
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(400px, 1fr))',
-          gap: '16px'
+          gap: '16px',
         }}
       >
         {monthlyPlots.map((src, index) => (

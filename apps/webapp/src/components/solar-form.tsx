@@ -1,14 +1,14 @@
 'use client'
+import { useActionState } from 'react'
+import { useFormStatus } from 'react-dom'
 import { postSolarForm } from '@/actions/energy-form'
 import FileUpload from '@/components/file-upload'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useActionState } from 'react'
-import { useFormStatus } from 'react-dom'
 
 const initialState = {
-  message: null
+  message: null,
 }
 
 const SubmitButton = () => {

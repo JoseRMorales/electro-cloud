@@ -1,6 +1,6 @@
-import { type GetAllResultsTimeSlotsResults } from '@/api/responses'
+import type { GetAllResultsTimeSlotsResults } from '@/api/responses'
 import SolarAnalysisApi from '@/api/solarAnalysisApi'
-import { type apiType } from '@/types/types'
+import type { apiType } from '@/types/types'
 import AnalysisCard from './ui/analysis-card'
 
 const AnalysisCardGrid = async ({ api }: { api: apiType }) => {

@@ -1,13 +1,13 @@
 'use client'
 
-import { Button } from '@/components/ui/button'
-import { ModeToggle } from '@/components/ui/mode-toggle'
 import { House, Menu, X } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import * as React from 'react'
+import { Button } from '@/components/ui/button'
+import { ModeToggle } from '@/components/ui/mode-toggle'
 
-export default function Navbar () {
+export default function Navbar() {
   const [isOpen, setIsOpen] = React.useState(false)
   const pathname = usePathname()
 
@@ -15,7 +15,7 @@ export default function Navbar () {
 
   const navItems = [
     { name: 'Energy', href: '/energy' },
-    { name: 'Solar', href: '/solar' }
+    { name: 'Solar', href: '/solar' },
   ]
 
   return (

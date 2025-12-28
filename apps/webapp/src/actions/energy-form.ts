@@ -4,14 +4,14 @@ import { revalidatePath } from 'next/cache'
 
 import SolarAnalysisApi from '@/api/solarAnalysisApi'
 
-export const postEnergyFile = async (prevState: any, formData: FormData) => {
+export const postEnergyFile = async (_: unknown, formData: FormData) => {
   const api = new SolarAnalysisApi()
-  const analysisId = await api.postEnergyFile(formData)
+  await api.postEnergyFile(formData)
   revalidatePath('/energy')
 }
 
 export const getEnergyByTimeSlot = async (
-  analysisId: string
+  analysisId: string,
 ): Promise<string> => {
   const api = new SolarAnalysisApi()
   const data = await api.getEnergyByTimeSlot(analysisId)
@@ -19,18 +19,15 @@ export const getEnergyByTimeSlot = async (
   return data
 }
 
-export const deleteAnalysis = async (
-  analysisId: string,
-  formData: FormData
-) => {
+export const deleteAnalysis = async (analysisId: string) => {
   const api = new SolarAnalysisApi()
   await api.deleteAnalysis(analysisId)
 
   revalidatePath('/energy')
 }
 
-export const postSolarForm = async (prevState: any, formData: FormData) => {
+export const postSolarForm = async (_: unknown, formData: FormData) => {
   const api = new SolarAnalysisApi()
-  const analysisId = await api.postSolarForm(formData)
+  await api.postSolarForm(formData)
   revalidatePath('/solar')
 }

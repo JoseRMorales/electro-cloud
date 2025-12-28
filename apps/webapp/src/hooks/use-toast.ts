@@ -1,8 +1,5 @@
 'use client'
-
-// Inspired by react-hot-toast library
-import * as React from 'react'
-
+import { useEffect, useState } from 'react'
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast'
 
 const TOAST_LIMIT = 1
@@ -19,12 +16,12 @@ const actionTypes = {
   ADD_TOAST: 'ADD_TOAST',
   UPDATE_TOAST: 'UPDATE_TOAST',
   DISMISS_TOAST: 'DISMISS_TOAST',
-  REMOVE_TOAST: 'REMOVE_TOAST'
+  REMOVE_TOAST: 'REMOVE_TOAST',
 } as const
 
 let count = 0
 
-function genId () {
+function genId() {
   count = (count + 1) % Number.MAX_SAFE_INTEGER
   return count.toString()
 }
@@ -64,7 +61,7 @@ const addToRemoveQueue = (toastId: string) => {
     toastTimeouts.delete(toastId)
     dispatch({
       type: 'REMOVE_TOAST',
-      toastId
+      toastId,
     })
   }, TOAST_REMOVE_DELAY)
 
@@ -76,15 +73,15 @@ export const reducer = (state: State, action: Action): State => {
     case 'ADD_TOAST':
       return {
         ...state,
-        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT)
+        toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
       }
 
     case 'UPDATE_TOAST':
       return {
         ...state,
         toasts: state.toasts.map((t) =>
-          t.id === action.toast.id ? { ...t, ...action.toast } : t
-        )
+          t.id === action.toast.id ? { ...t, ...action.toast } : t,
+        ),
       }
 
     case 'DISMISS_TOAST': {
@@ -106,22 +103,22 @@ export const reducer = (state: State, action: Action): State => {
           t.id === toastId || toastId === undefined
             ? {
                 ...t,
-                open: false
+                open: false,
               }
-            : t
-        )
+            : t,
+        ),
       }
     }
     case 'REMOVE_TOAST':
       if (action.toastId === undefined) {
         return {
           ...state,
-          toasts: []
+          toasts: [],
         }
       }
       return {
         ...state,
-        toasts: state.toasts.filter((t) => t.id !== action.toastId)
+        toasts: state.toasts.filter((t) => t.id !== action.toastId),
       }
   }
 }
@@ -130,7 +127,7 @@ const listeners: Array<(state: State) => void> = []
 
 let memoryState: State = { toasts: [] }
 
-function dispatch (action: Action) {
+function dispatch(action: Action) {
   memoryState = reducer(memoryState, action)
   listeners.forEach((listener) => {
     listener(memoryState)
@@ -139,13 +136,13 @@ function dispatch (action: Action) {
 
 type Toast = Omit<ToasterToast, 'id'>
 
-function toast ({ ...props }: Toast) {
+function toast({ ...props }: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
     dispatch({
       type: 'UPDATE_TOAST',
-      toast: { ...props, id }
+      toast: { ...props, id },
     })
   const dismiss = () => dispatch({ type: 'DISMISS_TOAST', toastId: id })
 
@@ -156,22 +153,24 @@ function toast ({ ...props }: Toast) {
       id,
       open: true,
       onOpenChange: (open) => {
-        if (!open) dismiss()
-      }
-    }
+        if (!open) {
+          dismiss()
+        }
+      },
+    },
   })
 
   return {
     id,
     dismiss,
-    update
+    update,
   }
 }
 
-function useToast () {
-  const [state, setState] = React.useState<State>(memoryState)
+function useToast() {
+  const [state, setState] = useState<State>(memoryState)
 
-  React.useEffect(() => {
+  useEffect(() => {
     listeners.push(setState)
     return () => {
       const index = listeners.indexOf(setState)
@@ -184,7 +183,7 @@ function useToast () {
   return {
     ...state,
     toast,
-    dismiss: (toastId?: string) => dispatch({ type: 'DISMISS_TOAST', toastId })
+    dismiss: (toastId?: string) => dispatch({ type: 'DISMISS_TOAST', toastId }),
   }
 }
 

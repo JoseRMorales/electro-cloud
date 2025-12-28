@@ -9,12 +9,12 @@ import { Toaster } from '@/components/ui/toaster'
 export const metadata: Metadata = {
   title: 'Electro Cloud',
   icons: {
-    icon: '/icon.svg'
-  }
+    icon: '/icon.svg',
+  },
 }
 
-export default function RootLayout ({
-  children
+export default function RootLayout({
+  children,
 }: {
   children: React.ReactNode
 }) {

@@ -1,15 +1,14 @@
 'use client'
-import { Button } from '@/components/ui/button'
 
 import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
-
 import { postEnergyFile } from '@/actions/energy-form'
+import { Button } from '@/components/ui/button'
 
 import FileUpload from './file-upload'
 
 const initialState = {
-  message: null
+  message: null,
 }
 
 const SubmitButton = () => {

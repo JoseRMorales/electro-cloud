@@ -1,7 +1,8 @@
 {
-  "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+  "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
-    "source.sortImports": "explicit",
+    "source.organizeImports.biome": "explicit",
+    "quickFix.biome": "explicit"
   },
   "editor.formatOnType": false, // required
   "editor.formatOnPaste": true, // optional
@@ -9,9 +10,13 @@
   "editor.formatOnSaveMode": "file", // required to format on save
   //"files.autoSave": "onFocusChange", // optional but recommended
   "typescript.preferences.importModuleSpecifier": "non-relative",
-  "ruff.configuration": "./apps/backend/ruff.toml",
-  "[python]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "charliermarsh.ruff"
-  }
+  "[json]": {
+    "files.insertFinalNewline": true,
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[jsonc]": {
+    "files.insertFinalNewline": true,
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "biome.lsp.bin": "./apps/webapp/node_modules/@biomejs/biome/bin/biome",
 }

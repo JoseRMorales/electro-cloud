@@ -1,10 +1,10 @@
 'use client'
 
-import { deleteAnalysis } from '@/actions/energy-form'
-import { Button } from '@/components/ui/button'
-import { type apiType } from '@/types/types'
 import Link from 'next/link'
 import { useFormStatus } from 'react-dom'
+import { deleteAnalysis } from '@/actions/energy-form'
+import { Button } from '@/components/ui/button'
+import type { apiType } from '@/types/types'
 
 interface AnalysisCardProps {
   analysisId: string

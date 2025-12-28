@@ -1,0 +1,1 @@
+{  "$schema": "https://biomejs.dev/schemas/2.3.10/schema.json",  "root": false,  "extends": ["../../biome.json"],  "files": {    "ignoreUnknown": false,    "includes": [      "**",      "!!**/.next/**",      "!!**/node_modules/**",      "!!**/dist/**",      "!!**/database.types.ts"    ]  }}

@@ -1,11 +1,11 @@
 'use server'
 
-import { SelfPercentRatiosResponse } from '@/api/responses'
-import SolarAnalysisApi from '@/api/solarAnalysisApi'
 import AdmZip from 'adm-zip'
+import type { SelfPercentRatiosResponse } from '@/api/responses'
+import SolarAnalysisApi from '@/api/solarAnalysisApi'
 
 export const getSolarConsumptionProductionPlot = async (
-  analysisId: string
+  analysisId: string,
 ): Promise<string> => {
   const api = new SolarAnalysisApi()
   const blob = await api.getSolarConsumptionProductionPlot(analysisId)
@@ -16,7 +16,7 @@ export const getSolarConsumptionProductionPlot = async (
 }
 
 export const getSolarMonthlyPlots = async (
-  analysisId: string
+  analysisId: string,
 ): Promise<string[]> => {
   const api = new SolarAnalysisApi()
   const zipBuffer = await api.getSolarMonthlyPlots(analysisId)
@@ -29,7 +29,7 @@ export const getSolarMonthlyPlots = async (
   const images = zipEntries
     .filter(
       (entry) =>
-        !entry.isDirectory && /\.(png|jpg|jpeg|gif)$/i.test(entry.entryName)
+        !entry.isDirectory && /\.(png|jpg|jpeg|gif)$/i.test(entry.entryName),
     ) // Filter for image files
     .map((entry) => {
       const imageBuffer = entry.getData()
@@ -41,7 +41,7 @@ export const getSolarMonthlyPlots = async (
 }
 
 export const getSolarSelfPercentRatios = async (
-  analysisId: string
+  analysisId: string,
 ): Promise<SelfPercentRatiosResponse> => {
   const api = new SolarAnalysisApi()
   const data = await api.getSolarSelfPercentRatios(analysisId)
@@ -50,7 +50,7 @@ export const getSolarSelfPercentRatios = async (
 }
 
 export const getSolarMonthlyProduction = async (
-  analysisId: string
+  analysisId: string,
 ): Promise<string> => {
   const api = new SolarAnalysisApi()
   const data = await api.getSolarMonthlyProduction(analysisId)
@@ -59,7 +59,7 @@ export const getSolarMonthlyProduction = async (
 }
 
 export const getSolarMonthlyConsumption = async (
-  analysisId: string
+  analysisId: string,
 ): Promise<string> => {
   const api = new SolarAnalysisApi()
   const data = await api.getSolarMonthlyConsumption(analysisId)

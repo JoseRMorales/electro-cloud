@@ -1,5 +1,7 @@
 'use client'
 
+import { IconClipboard } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -7,11 +9,10 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table'
+
 import { useToast } from '@/hooks/use-toast'
-import { IconClipboard } from '@tabler/icons-react'
-import { useEffect, useState } from 'react'
 
 interface DataTableProps {
   data: string
@@ -41,7 +42,7 @@ const DataTable = ({ data, clipboard = true }: DataTableProps) => {
 
   const launchToast = () => {
     toast({
-      description: 'Copied to clipboard'
+      description: 'Copied to clipboard',
     })
   }
 
