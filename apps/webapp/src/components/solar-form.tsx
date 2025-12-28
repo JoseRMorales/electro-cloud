@@ -81,6 +81,16 @@ const SolarForm = () => {
           className="mb-4"
         />
 
+        <Label htmlFor="name" className="text-lg font-semibold mb-2 block">
+          Analysis Name (Optional)
+        </Label>
+        <Input
+          id="name"
+          name="name"
+          placeholder="e.g. My Summer House"
+          className="mb-4"
+        />
+
         <FileUpload />
         <p className="text-sm text-muted-foreground mt-1">
           Optional: Upload a consumption file for self-consumption analysis.

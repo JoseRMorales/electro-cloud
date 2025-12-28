@@ -21,6 +21,7 @@ const AnalysisCardGrid = async ({ api }: { api: apiType }) => {
     return {
       analysisId: result.analysisId,
       created_at: date,
+      name: result.name,
     }
   })
 
@@ -37,6 +38,7 @@ const AnalysisCardGrid = async ({ api }: { api: apiType }) => {
             key={result.analysisId}
             analysisId={result.analysisId}
             created_at={result.created_at}
+            name={result.name}
             api={api}
           />
         ))}

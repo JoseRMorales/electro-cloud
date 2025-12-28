@@ -10,9 +10,15 @@ interface AnalysisCardProps {
   analysisId: string
   created_at: string
   api: apiType
+  name?: string
 }
 
-const AnalysisCard = ({ analysisId, created_at, api }: AnalysisCardProps) => {
+const AnalysisCard = ({
+  analysisId,
+  created_at,
+  api,
+  name,
+}: AnalysisCardProps) => {
   const { pending } = useFormStatus()
 
   const date = new Date(created_at).toLocaleString('es-ES', {
@@ -27,7 +33,7 @@ const AnalysisCard = ({ analysisId, created_at, api }: AnalysisCardProps) => {
         className="inline-block relative z-10 p-8 -m-8"
       >
         <h5 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-          <p>{analysisId}</p>
+          <p>{name || analysisId}</p>
         </h5>
         <p>Created at: {date}</p>
       </Link>

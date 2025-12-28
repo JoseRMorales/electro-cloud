@@ -16,10 +16,34 @@ from tools.utils import logger
 from .constants import PATHS
 
 
+def _save_metadata(analysisId: str, metadata: dict) -> None:
+    """
+    Save metadata for an analysis.
+    """
+    if not os.path.exists(PATHS["metadata"]):
+        os.makedirs(PATHS["metadata"])
+
+    metadata_path = os.path.join(PATHS["metadata"], f"{analysisId}.json")
+    with open(metadata_path, "w") as f:
+        json.dump(metadata, f)
+
+
+def _get_metadata(analysisId: str) -> dict:
+    """
+    Get metadata for an analysis.
+    """
+    metadata_path = os.path.join(PATHS["metadata"], f"{analysisId}.json")
+    if os.path.exists(metadata_path):
+        with open(metadata_path, "r") as f:
+            return json.load(f)
+    return {}
+
+
 async def solar_calculation(
     consumption_file: Optional[StringIO],
     location: str,
     roofs: list[dict],
+    name: Optional[str] = None,
 ) -> str:
     """
     Generate all the data necessary for the solar analysis.
@@ -40,6 +64,10 @@ async def solar_calculation(
             location + json.dumps(sorted_roofs)
         )
     )
+
+    # Save metadata
+    if name:
+        _save_metadata(analysisId, {"name": name})
 
     # Parse the consumption file if provided
     if consumption_file:
@@ -209,7 +237,7 @@ def get_results_time_slot_solar(analysisId: str) -> bytes:
 """
 
 
-def process_consumption_file(consumption_file: bytes) -> str:
+def process_consumption_file(consumption_file: bytes, name: Optional[str] = None) -> str:
     """
     Process the consumption file. If some exception is raised,
 
@@ -219,6 +247,10 @@ def process_consumption_file(consumption_file: bytes) -> str:
     logger.info("Processing consumption file")
 
     analysisId = str(uuid.uuid4())
+
+    # Save metadata
+    if name:
+        _save_metadata(analysisId, {"name": name})
 
     try:
         # Read StringIO object into a string
@@ -290,7 +322,12 @@ def get_results_time_slot_energy() -> list:
             time = os.path.getctime(
                 os.path.join(PATHS["consumption_parsed_hourly"], file)
             )
-            results.append({"analysisId": analysisId, "created_at": time})
+            metadata = _get_metadata(analysisId)
+            results.append({
+                "analysisId": analysisId, 
+                "created_at": time,
+                "name": metadata.get("name")
+            })
 
     return results
 
@@ -317,6 +354,9 @@ def delete_results_time_slot_energy_by_id(analysisId: str):
     if os.path.exists(os.path.join(PATHS["time_slots"], f"{analysisId}.csv")):
         os.remove(os.path.join(PATHS["time_slots"], f"{analysisId}.csv"))
 
+    if os.path.exists(os.path.join(PATHS["metadata"], f"{analysisId}.json")):
+        os.remove(os.path.join(PATHS["metadata"], f"{analysisId}.json"))
+
     message = "The analysis was deleted"
 
     return message
@@ -339,6 +379,11 @@ def get_solar_analysis() -> list:
             analysisId = file[:-4]
             # Get date from the file
             time = os.path.getctime(os.path.join(PATHS["results"], file))
-            results.append({"analysisId": analysisId, "created_at": time})
+            metadata = _get_metadata(analysisId)
+            results.append({
+                "analysisId": analysisId, 
+                "created_at": time,
+                "name": metadata.get("name")
+            })
 
     return results

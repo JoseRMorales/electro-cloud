@@ -19,6 +19,7 @@ def root():
 async def process(
     location: Annotated[str, Form()],
     roofs: Annotated[str, Form()],
+    name: Annotated[Optional[str], Form()] = None,
     consumption_file: Annotated[Optional[UploadFile], File()] = None,
 ):
     """
@@ -41,7 +42,7 @@ async def process(
     try:
         roofs_list = json.loads(roofs)
         analysisId = await core.solar_calculation(
-            consumption_io, location, roofs_list
+            consumption_io, location, roofs_list, name
         )
     except Exception as e:
         logger.exception(e)

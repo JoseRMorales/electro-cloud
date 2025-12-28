@@ -1,7 +1,7 @@
 from io import StringIO
-from typing import Annotated
+from typing import Annotated, Optional
 
-from fastapi import APIRouter, File, HTTPException, Response, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
 from tools.energy_analysis_lib import core
 from tools.utils import logger
 
@@ -53,7 +53,10 @@ def delete_results_time_slot_energy_by_id(analysisId: str):
 
 
 @router.post("/time-slots")
-async def process(consumption_file: Annotated[UploadFile, File()]):
+async def process(
+    consumption_file: Annotated[UploadFile, File()],
+    name: Annotated[Optional[str], Form()] = None,
+):
     """
     Process the consumption file. If some exception is raised,
 
@@ -66,7 +69,7 @@ async def process(consumption_file: Annotated[UploadFile, File()]):
     consumption_file = StringIO(consumption_file.decode("utf-8"))
 
     try:
-        analysisId = core.process_consumption_file(consumption_file)
+        analysisId = core.process_consumption_file(consumption_file, name)
     except Exception as e:
         logger.error(e)
         # Return 500 error

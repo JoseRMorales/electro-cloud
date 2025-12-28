@@ -33,6 +33,7 @@ PATHS = {
     "results": os.path.join(output_path, "results"),
     "time_slots": os.path.join(output_path, "time_slots"),
     "locations": os.path.join(output_path, "locations"),
+    "metadata": os.path.join(output_path, "metadata"),
 }
 
 PATHS["consumption_parsed_hourly"] = os.path.join(PATHS["consumption"], "parsed_hourly")
