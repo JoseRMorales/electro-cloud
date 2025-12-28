@@ -13,7 +13,7 @@ from tools.utils import logger
 from .constants import PATHS
 
 
-def solar_calculation(
+async def solar_calculation(
     consumption_file: bytes,
     location: str,
     peakpower: float,
@@ -53,10 +53,10 @@ def solar_calculation(
     parse_consumption_file(consumption_file, analysisId)
 
     # Get the production data from api
-    api.get_monthly_production(
+    await api.get_monthly_production(
         location, peakpower, mountingplace, loss, angle, aspect, analysisId
     )
-    api.get_hourly_production(
+    await api.get_hourly_production(
         location, peakpower, mountingplace, loss, angle, aspect, analysisId
     )
 

@@ -43,7 +43,7 @@ async def process(
     consumption_file = StringIO(consumption_file.decode("utf-8"))
 
     try:
-        analysisId = core.solar_calculation(
+        analysisId = await core.solar_calculation(
             consumption_file, location, peakpower, mountingplace, loss, angle, aspect
         )
     except Exception as e:

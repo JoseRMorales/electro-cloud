@@ -2,7 +2,7 @@ import json
 import logging
 import os
 
-import requests
+import aiohttp
 from dotenv import load_dotenv
 
 from .energy_analysis_lib.constants import PATHS
@@ -16,11 +16,11 @@ production_monthly_cache = os.path.join(PATHS["production"], "monthly.json")
 production_hourly_cache = os.path.join(PATHS["production"], "hourly.json")
 
 
-def get_coordinates(location: str) -> (str, str):
+async def get_coordinates(location: str) -> (str, str):
     """
     Gets the coordinates of a location using the positionstack API
 
-    :param locations: location to get the coordinates
+    :param location: location to get the coordinates
     :return: latitude and longitude of the location
     """
     # Create the locations folder if it does not exist
@@ -51,14 +51,15 @@ def get_coordinates(location: str) -> (str, str):
     logging.info("Getting coordinates from API")
 
     # Get the response from the API
-    response = requests.get(url, params=params)
-    response_json = response.json()
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as response:
+            # Check if the response is correct
+            if response.status != 200:
+                logging.error("Error getting coordinates from API")
+                logging.error(await response.text())
+                raise ValueError("Error getting coordinates from API")
 
-    # Check if the response is correct
-    if response.status_code != 200:
-        logging.error("Error getting coordinates from API")
-        logging.error(response_json)
-        raise ValueError("Error getting coordinates from API")
+            response_json = await response.json()
 
     # Get the coordinates from the response
     latitude = response_json["data"][0]["latitude"]
@@ -73,7 +74,7 @@ def get_coordinates(location: str) -> (str, str):
     return latitude, longitude
 
 
-def get_monthly_production(
+async def get_monthly_production(
     location: str,
     peakpower: float,
     mountingplace: str,
@@ -95,7 +96,7 @@ def get_monthly_production(
     :return: None
     """
     # Get the coordinates of the location
-    latitude, longitude = get_coordinates(location)
+    latitude, longitude = await get_coordinates(location)
 
     # Create the production folder if it does not exist
     if not os.path.exists(PATHS["production"]):
@@ -132,13 +133,15 @@ def get_monthly_production(
     logging.info("Getting monthly production from API")
 
     # Get the response from the API
-    response = requests.get(url, params=params)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as response:
+            # Check if the response is correct
+            if response.status != 200:
+                logging.error("Error getting production from API")
+                logging.error(await response.text())
+                raise ValueError("Error getting production from API")
 
-    # Check if the response is correct
-    if response.status_code != 200:
-        logging.error("Error getting production from API")
-        logging.error(response.text)
-        raise ValueError("Error getting production from API")
+            response_text = await response.text()
 
     # Set true if the production is saved
     production_dict[analysisId] = True
@@ -151,13 +154,13 @@ def get_monthly_production(
 
     # Save the production in a file
     with open(os.path.join(PATHS["production_monthly"], analysisId + ".csv"), "w") as f:
-        f.write(response.text)
+        f.write(response_text)
 
     logging.info("Production found in API")
     return
 
 
-def get_hourly_production(
+async def get_hourly_production(
     location: str,
     peakpower: float,
     mountingplace: str,
@@ -179,7 +182,7 @@ def get_hourly_production(
     :return: None
     """
     # Get the coordinates of the location
-    latitude, longitude = get_coordinates(location)
+    latitude, longitude = await get_coordinates(location)
 
     # Create the production folder if it does not exist
     if not os.path.exists(PATHS["production"]):
@@ -219,13 +222,15 @@ def get_hourly_production(
     logging.info("Getting hourly production from API")
 
     # Get the response from the API
-    response = requests.get(url, params=params)
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url, params=params) as response:
+            # Check if the response is correct
+            if response.status != 200:
+                logging.error("Error getting production from API")
+                logging.error(await response.text())
+                raise ValueError("Error getting production from API")
 
-    # Check if the response is correct
-    if response.status_code != 200:
-        logging.error("Error getting production from API")
-        logging.error(response.text)
-        raise ValueError("Error getting production from API")
+            response_text = await response.text()
 
     # Set true if the production is saved
     production_dict[analysisId] = True
@@ -238,8 +243,9 @@ def get_hourly_production(
 
     # Save the production in a file
     with open(os.path.join(PATHS["production_hourly"], analysisId + ".csv"), "w") as f:
-        f.write(response.text)
+        f.write(response_text)
         logging.info("Written hourly production to file")
 
     logging.info("Production found in API")
     return
+
