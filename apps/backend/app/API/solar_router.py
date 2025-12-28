@@ -1,6 +1,7 @@
+import json
 import zipfile
 from io import BytesIO, StringIO
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, File, Form, HTTPException, Response, UploadFile
 from tools.energy_analysis_lib import core
@@ -16,35 +17,31 @@ def root():
 
 @router.post("/process-file")
 async def process(
-    consumption_file: Annotated[UploadFile, File()],
     location: Annotated[str, Form()],
-    peakpower: Annotated[float, Form()],
-    mountingplace: Annotated[str, Form()],
-    loss: Annotated[float, Form()],
-    angle: Annotated[float, Form()],
-    aspect: Annotated[float, Form()],
+    roofs: Annotated[str, Form()],
+    consumption_file: Annotated[Optional[UploadFile], File()] = None,
 ):
     """
     Process the consumption file and the form data. If some exception is raised,
     return the error message
 
-    :param consumption_file: consumption file
     :param location: location of the installation
-    :param peakpower: peak power of the installation
-    :param mountingplace: mounting place of the installation
-    :param loss: loss of the installation
-    :param angle: angle of the installation
-    :param aspect: azimuth of the installation
-    :return: None
+    :param roofs: JSON string containing list of roof configurations
+    :param consumption_file: optional consumption file
+    :return: analysisId
     """
     logger.info("Processing request")
 
-    consumption_file = await consumption_file.read()
-    consumption_file = StringIO(consumption_file.decode("utf-8"))
+    consumption_io = None
+    if consumption_file:
+        consumption_content = await consumption_file.read()
+        if consumption_content:
+            consumption_io = StringIO(consumption_content.decode("utf-8"))
 
     try:
+        roofs_list = json.loads(roofs)
         analysisId = await core.solar_calculation(
-            consumption_file, location, peakpower, mountingplace, loss, angle, aspect
+            consumption_io, location, roofs_list
         )
     except Exception as e:
         logger.exception(e)
@@ -149,6 +146,7 @@ def results_monthly_plots(analysisId: str):
         # Add each image to the zip file
         for i, plot in enumerate(plots):
             zip_file.writestr(f"image{i}.png", plot.read())
+            plot.close()
 
     zip_bytes.seek(0)
 

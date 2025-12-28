@@ -106,29 +106,84 @@ def parse_hourly_production_file(analysisId: str) -> None:
     logger.info(f"Written file {saved_path}")
 
 
-def consumption_production_chart(
-    location: str,
-    peakpower: float,
-    mountingplace: str,
-    loss: float,
-    angle: float,
-    aspect: float,
-    analysisId: str,
-) -> None:
+
+def load_and_parse_hourly(analysisId: str) -> pd.DataFrame:
+    """
+    Loads and parses the hourly production file for a given analysisId
+    """
+    parse_hourly_production_file(analysisId)
+    df = pd.read_csv(
+        os.path.join(PATHS["production_parsed_hourly"], f"{analysisId}.csv"),
+        sep=";",
+        decimal=",",
+        thousands=".",
+        encoding="UTF-8",
+    )
+    return df
+
+
+def load_and_parse_monthly(analysisId: str) -> pd.DataFrame:
+    """
+    Loads and parses the monthly production file for a given analysisId
+    """
+    parse_monthly_production_file(analysisId)
+    df = pd.read_csv(
+        os.path.join(PATHS["production_parsed_monthly"], f"{analysisId}.csv"),
+        sep=";",
+        decimal=",",
+        thousands=".",
+        encoding="UTF-8",
+    )
+    return df
+
+
+def aggregate_hourly(dfs: list[pd.DataFrame], targetId: str) -> pd.DataFrame:
+    """
+    Aggregates multiple hourly production DataFrames by summing their Energy
+    """
+    if not dfs:
+        return None
+
+    df_agg = dfs[0].copy()
+    for df in dfs[1:]:
+        df_agg["Energy"] += df["Energy"]
+
+    # Round to 3 decimals after aggregation
+    df_agg["Energy"] = df_agg["Energy"].round(3)
+
+    lib_utils.save_csv_file(PATHS["production_parsed_hourly"], targetId, df_agg)
+    return df_agg
+
+
+def aggregate_monthly(dfs: list[pd.DataFrame], targetId: str) -> pd.DataFrame:
+    """
+    Aggregates multiple monthly production DataFrames by summing their Energy
+    """
+    if not dfs:
+        return None
+
+    df_agg = dfs[0].copy()
+    for df in dfs[1:]:
+        df_agg["Energy"] += df["Energy"]
+
+    # Round to 2 decimals
+    df_agg["Energy"] = df_agg["Energy"].round(2)
+
+    lib_utils.save_csv_file(PATHS["production_parsed_monthly"], targetId, df_agg)
+    return df_agg
+
+
+def consumption_production_chart(analysisId: str) -> None:
     """
     Generates a chart with the consumption and production data for a location
+    If consumption is not found, only production is plotted.
 
-    :param location: location to get the data
-    :param peakpower: peak power of the installation
-    :param mountingplace: mounting place of the installation
-    :param loss: loss of the installation
-    :param angle: angle of the installation
-    :param aspect: aspect of the installation
     :param analysisId: id of the user
     :return: None
     """
 
     # Load the consumption data
+    df_consumption = None
     try:
         df_consumption = pd.read_csv(
             os.path.join(PATHS["consumption_parsed_monthly"], f"{analysisId}.csv"),
@@ -137,9 +192,9 @@ def consumption_production_chart(
             thousands=".",
             encoding="UTF-8",
         )
+        logger.info("Consumption data loaded")
     except FileNotFoundError:
-        raise FileNotFoundError("Consumption file not found")
-    logger.info("Consumption data loaded")
+        logger.info("Consumption file not found, skipping consumption plot")
 
     # Load the production data
     try:
@@ -151,43 +206,36 @@ def consumption_production_chart(
             encoding="UTF-8",
         )
     except FileNotFoundError:
-        api.get_monthly_production(
-            location=location,
-            peakpower=peakpower,
-            mountingplace=mountingplace,
-            loss=loss,
-            angle=angle,
-            aspect=aspect,
-            analysisId=analysisId,
-        )
-        parse_monthly_production_file(analysisId)
-        df_production = pd.read_csv(
-            os.path.join(PATHS["production_parsed_monthly"], f"{analysisId}.csv"),
-            sep=";",
-            decimal=",",
-            thousands=".",
-            encoding="UTF-8",
-        )
+        logger.error("Production file not found")
+        raise FileNotFoundError("Production file not found")
+
     logger.info("Production data loaded")
 
-    # Merge the consumption and production data
-    df = pd.merge(
-        df_consumption,
-        df_production,
-        on=["Month"],
-        how="outer",
-        suffixes=("_consumption", "_production"),
-    )
-    df = df.reset_index(drop=True)
-    logger.info("Data merged")
+    if df_consumption is not None:
+        # Merge the consumption and production data
+        df = pd.merge(
+            df_consumption,
+            df_production,
+            on=["Month"],
+            how="outer",
+            suffixes=("_consumption", "_production"),
+        )
+        df = df.reset_index(drop=True)
+        logger.info("Data merged")
 
-    # Generate the bar chart
-    df.plot.bar(x="Month", y=["Energy_consumption", "Energy_production"], rot=0)
+        # Generate the bar chart
+        df.plot.bar(x="Month", y=["Energy_consumption", "Energy_production"], rot=0)
+        plt.legend(["Consumption", "Production"])
+    else:
+        # Only production
+        df_production.plot.bar(x="Month", y="Energy", rot=0)
+        plt.legend(["Production"])
+
     plt.xlabel("Month")
     plt.ylabel("Energy (kWh)")
     plt.title("Consumption and production")
-    plt.legend(["Consumption", "Production"])
     plt.gcf().set_size_inches(10, 5)
+
     # Create the path if it does not exist
     if not os.path.exists(PATHS["plots_consumption_production_chart"]):
         os.makedirs(PATHS["plots_consumption_production_chart"])
@@ -205,12 +253,14 @@ def consumption_production_chart(
 def get_self_consumption_ratio(analysisId: str) -> (list[float], float):
     """
     Calculates the self consumption ratio of a location
+    If consumption is missing, returns zeros.
 
     :param analysisId: id of the user
     :return: list of self consumption ratios, average self consumption ratio
     """
 
     # Load the consumption data
+    df_consumption = None
     try:
         df_consumption = pd.read_csv(
             os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"),
@@ -219,9 +269,10 @@ def get_self_consumption_ratio(analysisId: str) -> (list[float], float):
             thousands=".",
             encoding="UTF-8",
         )
+        logger.info("Consumption data loaded")
     except FileNotFoundError:
-        raise FileNotFoundError("Consumption file not found")
-    logger.info("Consumption data loaded")
+        logger.info("Consumption file not found, returning zero ratios")
+        return [0.0] * 12, 0.0
 
     # Load the production data
     try:
@@ -271,9 +322,12 @@ def get_self_consumption_ratio(analysisId: str) -> (list[float], float):
     )
 
     # Calculate the self consumption ratio rounding to 2 decimals
-    df["Self_consumption_ratio"] = (
-        1 - (df["Substraction"] / df["Energy_production"])
-    ).round(2)
+    # Avoid division by zero
+    df["Self_consumption_ratio"] = np.where(
+        df["Energy_production"] > 0,
+        (1 - (df["Substraction"] / df["Energy_production"])).round(2),
+        0.0
+    )
 
     # Save the dataframe as a csv file
     saved_path = lib_utils.save_csv_file(
@@ -289,12 +343,14 @@ def get_self_consumption_ratio(analysisId: str) -> (list[float], float):
 def process_results_time_slot_solar(analysisId: str) -> None:
     """
     Calculates the results of the time slot analysis
+    If consumption is missing, only surpluses are calculated.
 
     :param analysisId: id of the user
     :return: None
     """
 
     # Load the consumption data
+    df_consumption = None
     try:
         df_consumption = pd.read_csv(
             os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"),
@@ -303,9 +359,9 @@ def process_results_time_slot_solar(analysisId: str) -> None:
             thousands=".",
             encoding="UTF-8",
         )
+        logger.info("Consumption data loaded")
     except FileNotFoundError:
-        raise FileNotFoundError("Consumption file not found")
-    logger.info("Consumption data loaded")
+        logger.info("Consumption file not found, only calculating surpluses")
 
     # Load the production data
     try:
@@ -320,14 +376,20 @@ def process_results_time_slot_solar(analysisId: str) -> None:
         raise FileNotFoundError("Production file not found")
     logger.info("Production data loaded")
 
-    # Merge the consumption and production data
-    df = pd.merge(
-        df_consumption,
-        df_production,
-        on=["Month", "Day", "Hour"],
-        how="outer",
-        suffixes=("_consumption", "_production"),
-    )
+    if df_consumption is not None:
+        # Merge the consumption and production data
+        df = pd.merge(
+            df_consumption,
+            df_production,
+            on=["Month", "Day", "Hour"],
+            how="outer",
+            suffixes=("_consumption", "_production"),
+        )
+    else:
+        df = df_production.copy()
+        df = df.rename(columns={"Energy": "Energy_production"})
+        df["Energy_consumption"] = 0.0
+
     df = df.reset_index(drop=True)
     logger.info("Data merged")
 
@@ -351,7 +413,6 @@ def process_results_time_slot_solar(analysisId: str) -> None:
     df = df[df["Hour"] != 24]
 
     # Create datetime column
-    # TODO: Datetime 2022???
     df["Datetime"] = df.apply(
         lambda x: datetime.datetime(
             2024, int(x["Month"]), int(x["Day"]), int(x["Hour"])
@@ -376,66 +437,57 @@ def process_results_time_slot_solar(analysisId: str) -> None:
             )
 
     # Create a new dataframe with the sum by month
-    df = (
-        df.groupby(["Month"])
-        .agg(
-            {
-                "Surpluses": "sum",
-                "Consumption_after_self_consumption": "sum",
-                "nocturna_Valle": "sum",
-                "nocturna_Llana": "sum",
-                "nocturna_Punta": "sum",
-                "14h_Promocionadas": "sum",
-                "14h_No promocionadas": "sum",
-                "6h_Promocionadas": "sum",
-                "6h_No promocionadas": "sum",
-                "16h_Promocionadas": "sum",
-                "16h_No promocionadas": "sum",
-            }
-        )
-        .reset_index()
-    )
+    agg_dict = {
+        "Surpluses": "sum",
+        "Consumption_after_self_consumption": "sum",
+    }
+    for time_slot_name, time_slot in TIME_SLOTS.items():
+        for time_slot_type in time_slot.keys():
+            agg_dict[time_slot_name + "_" + time_slot_type] = "sum"
+
+    df = df.groupby(["Month"]).agg(agg_dict).reset_index()
 
     # Transpose the dataframe
     df = df.transpose()
 
-    # Order rows. In this order nocturna_punta, nocturna_llana, nocturna_valle,
-    # surpluses, 14h_promocionadas, 14h_no_promocionadas, 6h_promocionadas,
-    # 6h_no_promocionadas, 16h_promocionadas, 16h_no_promocionadas
-    df = df.reindex(
-        [
-            "nocturna_Punta",
-            "nocturna_Llana",
-            "nocturna_Valle",
-            "Surpluses",
-            "14h_Promocionadas",
-            "14h_No promocionadas",
-            "6h_Promocionadas",
-            "6h_No promocionadas",
-            "16h_Promocionadas",
-            "16h_No promocionadas",
-        ]
-    )
+    # Order rows.
+    order = [
+        "nocturna_Punta",
+        "nocturna_Llana",
+        "nocturna_Valle",
+        "Surpluses",
+        "14h_Promocionadas",
+        "14h_No promocionadas",
+        "6h_Promocionadas",
+        "6h_No promocionadas",
+        "16h_Promocionadas",
+        "16h_No promocionadas",
+    ]
+    # Filter order to only include existing columns in df
+    order = [o for o in order if o in df.index]
+    df = df.reindex(order)
 
     # Save the results
     saved_path = lib_utils.save_csv_file(PATHS["time_slots"], analysisId, df)
     logger.info(f"Written file {saved_path}")
 
-    process_results_time_slot_energy(analysisId)
-    logger.info("Consumption results saved")
+    # Only call process_results_time_slot_energy if consumption was provided
+    if df_consumption is not None:
+        process_results_time_slot_energy(analysisId)
+        logger.info("Consumption results saved")
 
 
 def plot_self_consumption_monthly(analysisId: str) -> None:
     """
     Calculate the self consumption for each month and generate the charts for each
     month.
-
-    Return the total self consumption
+    If consumption is missing, only production is plotted.
 
     :param analysisId: The id of the analysis
     """
 
     # Load the consumption data
+    df_consumption = None
     try:
         df_consumption = pd.read_csv(
             os.path.join(PATHS["consumption_parsed_hourly"], f"{analysisId}.csv"),
@@ -444,8 +496,7 @@ def plot_self_consumption_monthly(analysisId: str) -> None:
             encoding="UTF-8",
         )
     except FileNotFoundError:
-        logger.error("The consumption file does not exist")
-        raise FileNotFoundError("The consumption file does not exist")
+        logger.info("The consumption file does not exist, plotting only production")
 
     # Load the production data
     try:
@@ -459,14 +510,19 @@ def plot_self_consumption_monthly(analysisId: str) -> None:
         logger.error("The production file does not exist")
         raise FileNotFoundError("The production file does not exist")
 
-    # Merge the dataframes
-    df = pd.merge(
-        df_consumption,
-        df_production,
-        on=["Month", "Day", "Hour"],
-        how="left",
-        suffixes=("_consumption", "_production"),
-    )
+    if df_consumption is not None:
+        # Merge the dataframes
+        df = pd.merge(
+            df_consumption,
+            df_production,
+            on=["Month", "Day", "Hour"],
+            how="left",
+            suffixes=("_consumption", "_production"),
+        )
+    else:
+        df = df_production.copy()
+        df = df.rename(columns={"Energy": "Energy_production"})
+        df["Energy_consumption"] = 0.0
 
     # Get days of each month
     days_of_month = df.groupby(["Month"]).agg({"Day": "max"}).reset_index()
@@ -498,14 +554,28 @@ def plot_self_consumption_monthly(analysisId: str) -> None:
     # Plot the results for each month
     for month in range(1, 13):
         df_month = df[df["Month"] == month]
-        df_month.plot(
-            x="Hour",
-            y=["Energy_consumption", "Energy_production"],
-            kind="line",
-            title="Month " + str(month),
-            ylabel="Energy (kWh)",
-            xlabel="Hour",
-        )
+        
+        if df_consumption is not None:
+            df_month.plot(
+                x="Hour",
+                y=["Energy_consumption", "Energy_production"],
+                kind="line",
+                title="Month " + str(month),
+                ylabel="Energy (kWh)",
+                xlabel="Hour",
+            )
+            plt.legend(["Consumption", "Production"])
+        else:
+            df_month.plot(
+                x="Hour",
+                y="Energy_production",
+                kind="line",
+                title="Month " + str(month),
+                ylabel="Energy (kWh)",
+                xlabel="Hour",
+            )
+            plt.legend(["Production"])
+
         # Wider plot
         plt.gcf().set_size_inches(15, 8)
         # Create the path if it does not exist
